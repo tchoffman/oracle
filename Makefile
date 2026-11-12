@@ -1,4 +1,4 @@
-.PHONY: help all deps models corpus index venv clean status serve ask
+.PHONY: help all deps models corpus index venv clean status serve ask smoke-test
 
 SHELL := /bin/bash
 BUILD_DIR := build
@@ -15,9 +15,10 @@ help:
 	@echo "  make models   — pull LLM + embedding model via ollama"
 	@echo "  make corpus   — download ZIMs and public-domain PDFs into build/corpus"
 	@echo "  make index    — chunk + embed corpus PDFs into Chroma"
-	@echo "  make status   — print what's installed / downloaded / indexed"
-	@echo "  make serve    — launch kiwix-serve (ZIMs at http://localhost:8080)"
-	@echo "  make clean    — wipe build/ (redownload everything)"
+	@echo "  make status     — print what's installed / downloaded / indexed"
+	@echo "  make serve      — launch kiwix-serve (ZIMs at http://localhost:8080)"
+	@echo "  make smoke-test — run end-to-end validation"
+	@echo "  make clean      — wipe build/ (redownload everything)"
 	@echo ""
 	@echo "Day-to-day CLI (after make all):"
 	@echo "  bin/oracle ask \"your question\""
@@ -49,6 +50,9 @@ index: venv corpus
 
 status:
 	@bin/oracle status
+
+smoke-test:
+	@scripts/smoke-test.sh
 
 serve:
 	@bin/oracle serve
