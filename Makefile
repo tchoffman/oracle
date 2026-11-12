@@ -1,4 +1,4 @@
-.PHONY: help all deps models corpus index venv clean status serve ask setup plan smoke-test
+.PHONY: help all deps models corpus index venv clean status serve ask setup plan smoke-test test check-urls
 
 SHELL := /bin/bash
 BUILD_DIR := build
@@ -19,6 +19,8 @@ help:
 	@echo "  make index    — chunk + embed corpus PDFs into Chroma"
 	@echo "  make status     — print what's installed / downloaded / indexed"
 	@echo "  make serve      — launch kiwix-serve (ZIMs at http://localhost:8080)"
+	@echo "  make test       — run unit tests (config logic, no network)"
+	@echo "  make check-urls — HEAD-request every URL in the plan (catches dead links)"
 	@echo "  make smoke-test — run end-to-end validation"
 	@echo "  make clean      — wipe build/ (redownload everything)"
 	@echo ""
@@ -58,6 +60,12 @@ setup: venv
 
 plan: venv
 	@DRY_RUN=1 scripts/fetch-corpus.sh
+
+test: venv
+	@$(PY) -m pytest tests/ -v
+
+check-urls: venv
+	@scripts/check-urls.sh
 
 smoke-test:
 	@scripts/smoke-test.sh

@@ -147,6 +147,23 @@ def _custom_flow(catalog: dict, starting_enable: dict) -> dict:
     return chosen
 
 
+def diff_from_preset(preset_enable: dict, chosen_enable: dict) -> dict:
+    """Compute the minimal `overrides:` block that transforms preset_enable
+    into chosen_enable. Removed items are mapped to None so the merge logic
+    in install_config.load_effective_config can drop them.
+
+    Pure function — safe to unit-test.
+    """
+    overrides: dict[str, Any] = {}
+    for k, v in chosen_enable.items():
+        if preset_enable.get(k) != v:
+            overrides[k] = v
+    for k in preset_enable:
+        if k not in chosen_enable:
+            overrides[k] = None
+    return overrides
+
+
 # Module hook: future modules (comms, services) register setup functions here.
 # Each function takes (catalog, current_config_dict) and returns updated dict.
 # For v0.1 only corpus flow exists; others are no-ops.
@@ -194,15 +211,7 @@ def main() -> int:
     # If we customized, write overrides. Otherwise just point at the preset.
     if profile == "__custom__":
         preset_enable = load_yaml(PRESETS_DIR / f"{base_preset_choice}.yaml").get("enable") or {}
-        overrides: dict[str, Any] = {}
-        # Added or modified items
-        for k, v in chosen_enable.items():
-            if preset_enable.get(k) != v:
-                overrides[k] = v
-        # Removed items (set to None to signal removal in the merge)
-        for k in preset_enable:
-            if k not in chosen_enable:
-                overrides[k] = None
+        overrides = diff_from_preset(preset_enable, chosen_enable)
         save_local_config(base_preset_choice, overrides=overrides)
     else:
         save_local_config(profile)

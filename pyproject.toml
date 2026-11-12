@@ -1,7 +1,7 @@
 [project]
-name = "oracle"
+name = "pergamon"
 version = "0.1.0"
-description = "Offline knowledge oracle for off-grid research"
+description = "Offline knowledge library for off-grid research"
 requires-python = ">=3.10"
 dependencies = [
     "pyyaml>=6.0",
@@ -9,7 +9,15 @@ dependencies = [
     "ollama>=0.4.0",
     "pypdf>=5.0.0",
     "rich>=13.0.0",
+    "questionary>=2.0.0",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0.0"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
