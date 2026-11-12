@@ -1,4 +1,4 @@
-# Oracle RAG configuration. Edit in-place; no code changes needed.
+# Pergamon RAG configuration. Edit in-place; no code changes needed.
 
 # Ollama endpoint. Default is the local server started by scripts/install-deps.sh.
 ollama_host: http://localhost:11434
@@ -9,13 +9,13 @@ embedding_model: nomic-embed-text
 
 # Chroma persistent directory (inside build/ so it's gitignored).
 chroma_dir: build/chroma
-chroma_collection: oracle_corpus
+chroma_collection: pergamon_corpus
 
 # Chunking parameters for PDF ingestion.
 chunk_size: 1200          # characters per chunk
 chunk_overlap: 150        # character overlap between adjacent chunks
 
-# Retrieval parameters for `oracle ask`.
+# Retrieval parameters for `pergamon ask`.
 retrieve_k: 6             # top-K chunks to pull from Chroma
 max_context_chars: 8000   # cap context fed to the LLM to stay within window
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The oracle CLI. Thin dispatcher over the Python RAG modules + kiwix-serve.
+# The pergamon CLI. Thin dispatcher over the Python RAG modules + kiwix-serve.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,16 +7,16 @@ VENV_PY="$REPO_ROOT/build/venv/bin/python"
 
 usage() {
   cat <<EOF
-oracle — your offline knowledge oracle
+pergamon — your offline knowledge library
 
 Usage:
-  oracle setup               Interactively pick what to install
-  oracle ask "question"      Ask the oracle (RAG over your corpus)
-  oracle serve [--port N]    Serve ZIMs via kiwix-serve (default port 8080)
-  oracle status              Show what's installed / indexed / ready
-  oracle shell               Drop into a REPL with the venv activated
+  pergamon setup               Interactively pick what to install
+  pergamon ask "question"      Ask the library (RAG over your corpus)
+  pergamon serve [--port N]    Serve ZIMs via kiwix-serve (default port 8080)
+  pergamon status              Show what's installed / indexed / ready
+  pergamon shell               Drop into a REPL with the venv activated
 
-Build the oracle first:
+Build the pergamon first:
   make setup   (optional — choose what to install)
   make all     (or re-run after setup to download selections)
 
@@ -43,7 +43,7 @@ case "$cmd" in
 
   ask)
     if [[ $# -eq 0 ]]; then
-      echo "Usage: oracle ask \"your question here\"" >&2
+      echo "Usage: pergamon ask \"your question here\"" >&2
       exit 2
     fi
     require_venv

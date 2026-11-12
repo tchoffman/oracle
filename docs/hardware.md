@@ -19,7 +19,7 @@ Target: Apple Silicon Mac, 16GB RAM, ~100GB free disk.
 | Component | Pick | Why |
 |-----------|------|-----|
 | Compute   | Mac Mini M4, 32GB RAM, 1–2TB SSD | ~10W idle, ~40W inference. Runs 32B-class models at reasonable speed; full Wikipedia-with-images fits easily. |
-| Storage   | 2× external SSD, mirrored (ZFS / software RAID / just rsync) | One SSD dies, oracle lives. |
+| Storage   | 2× external SSD, mirrored (ZFS / software RAID / just rsync) | One SSD dies, pergamon lives. |
 | Power     | 400W solar panel + 1–2 kWh LiFePO4 + MPPT charge controller + pure-sine inverter | Can run the Mac Mini for hours daily, charge devices on the side. |
 | Display   | Small efficient monitor OR plug into a laptop over sidecar/USB-C | Only needed when actually using it. |
 | Comms     | Baofeng UV-5R (ham, needs Technician license) + Tecsun PL-330 (shortwave rx) | Information in; limited coordination out. |
@@ -48,7 +48,7 @@ EMP is one of several off-grid scenarios and not the most probable. Treat the ca
 ## Threat scenarios ranked by probability (loose)
 
 1. **Multi-day grid outage** — hurricane, ice storm, wildfire. Daily driver + solar handles this.
-2. **Supply chain disruption** — extended shortages but power + comms are fine. Oracle useful for recipes, repairs, triage.
+2. **Supply chain disruption** — extended shortages but power + comms are fine. Pergamon useful for recipes, repairs, triage.
 3. **Extended off-grid lifestyle** — cabin, van, boat. Same as #2 but constant.
 4. **EMP / cyberattack on grid** — probable scope: regional, weeks. Cage spare comes out.
 5. **Societal collapse** — low probability; everything else is still useful.

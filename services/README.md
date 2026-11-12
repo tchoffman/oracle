@@ -2,7 +2,7 @@
 
 **Status:** planning. See [../docs/roadmap.md](../docs/roadmap.md).
 
-Treat the oracle machine as a house services host: calendar, photos, notes, media, home automation. Each service is self-contained; enable only what you want.
+Treat the pergamon machine as a house services host: calendar, photos, notes, media, home automation. Each service is self-contained; enable only what you want.
 
 ## Planned layout
 
@@ -28,7 +28,7 @@ services/
 
 ## Idea: RAG over your own data
 
-The oracle's RAG index can ingest from these services so you can ask:
+The pergamon's RAG index can ingest from these services so you can ask:
 - "what was that kayak trip we took in 2024?" → pulls from photos + calendar
 - "what did I decide about the greenhouse last spring?" → pulls from notes
 - "which of my tools has an iFixit guide?" → cross-references inventory notes with iFixit ZIM

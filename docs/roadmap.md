@@ -4,15 +4,15 @@ What's shipped today vs what's next. Each numbered module below is self-containe
 
 ## Shipped (v0.1)
 
-- `make all` builds a working oracle on a fresh Mac: Ollama + kiwix-serve + Chroma + RAG.
-- `oracle ask "..."` answers questions with citations from the indexed PDF corpus.
-- `oracle serve` exposes the ZIM collection at `http://localhost:8080`.
+- `make all` builds a working pergamon on a fresh Mac: Ollama + kiwix-serve + Chroma + RAG.
+- `pergamon ask "..."` answers questions with citations from the indexed PDF corpus.
+- `pergamon serve` exposes the ZIM collection at `http://localhost:8080`.
 - Starter corpus: Simple English Wikipedia, Wikivoyage, WikiHow, iFixit, FM 21-76, Hesperian medical references.
 - Docs: hardware (cage machine), runbook, printable quick-reference.
 
 ## Module 1 — Radio & mesh comms
 
-**Goal:** when there's no internet, the oracle can still (a) receive outside info and (b) collaborate with other radio-connected oracles.
+**Goal:** when there's no internet, the pergamon can still (a) receive outside info and (b) collaborate with other radio-connected pergamons.
 
 Three layers of "no internet":
 - **Shortwave / HF receive-only** — news, weather, time signals. No license needed for listening.
@@ -24,17 +24,17 @@ Three layers of "no internet":
 | Piece | Hardware | Role |
 |-------|----------|------|
 | Shortwave bridge | Tecsun PL-330 + mic-to-USB cable, or RTL-SDR dongle | Timed cron captures of specific broadcasts; transcribe with Whisper; index like a PDF |
-| Meshtastic node | Heltec V3 or RAK WisBlock | Oracle publishes digests over LoRa; subscribers run their own oracles and merge updates |
+| Meshtastic node | Heltec V3 or RAK WisBlock | Pergamon publishes digests over LoRa; subscribers run their own pergamons and merge updates |
 | Reticulum stack | RNode / RNS over LoRa, packet radio, or TCP | More robust alternative to Meshtastic — supports larger payloads, end-to-end encryption, store-and-forward |
 | APRS gateway | TNC-Pi or Direwolf + Baofeng cable | Send location beacons, short messages; receive weather reports |
-| Collaboration protocol | Signed deltas of RAG index (small). Peer oracles exchange & verify. | Scales knowledge across a small group without internet |
+| Collaboration protocol | Signed deltas of RAG index (small). Peer pergamons exchange & verify. | Scales knowledge across a small group without internet |
 
-### Rough design for oracle-to-oracle sync
+### Rough design for pergamon-to-pergamon sync
 
 ```
-oracle A ──┐  (LoRa mesh, ~250 kbps burst, ~10 kbps sustained)
+pergamon A ──┐  (LoRa mesh, ~250 kbps burst, ~10 kbps sustained)
             ├─► signed delta packets (new PDFs, new ZIM highlights, incident reports)
-oracle B ──┘  
+pergamon B ──┘  
            └─► each peer verifies signature, merges deltas into local Chroma
 ```
 
@@ -42,7 +42,7 @@ A "delta" is small: a compact manifest + embeddings + source URL. Full bulk tran
 
 ### First step
 
-Prototype a Meshtastic-only build: ship a `modules/comms/meshtastic/` Python module that lets the oracle receive queries from mesh and reply with short summaries (chunked over multiple LoRa packets). Keep it isolated and feature-flagged — the core oracle works without it.
+Prototype a Meshtastic-only build: ship a `modules/comms/meshtastic/` Python module that lets the pergamon receive queries from mesh and reply with short summaries (chunked over multiple LoRa packets). Keep it isolated and feature-flagged — the core pergamon works without it.
 
 ## Module 2 — Survival compendium
 
@@ -79,7 +79,7 @@ Mirror `corpus/sources.yaml`'s structure, but bigger and organized by shelf. Sep
 
 ## Module 3 — In-home server services
 
-Treat the oracle machine as a quiet in-home services host. If it's running anyway, give it more jobs.
+Treat the pergamon machine as a quiet in-home services host. If it's running anyway, give it more jobs.
 
 ### Candidates
 
@@ -94,14 +94,14 @@ Treat the oracle machine as a quiet in-home services host. If it's running anywa
 | **Games** (nothing-net or custom) | Family offline games, puzzles, educational | Include a couple public-domain classics |
 | **Home automation** (Home Assistant) | Local-first smart home | No cloud dependence; pairs well with solar monitoring |
 | **DNS/ad-block** (Pi-hole / Blocky) | Clean DNS for the house | Low resource cost |
-| **Dashboards** (Grafana + node_exporter) | Solar / battery / disk / temp monitoring | Powers the "is the oracle healthy?" view |
+| **Dashboards** (Grafana + node_exporter) | Solar / battery / disk / temp monitoring | Powers the "is the pergamon healthy?" view |
 
 ### Deployment approach
 
 - Each service lives in `services/<name>/docker-compose.yml`
 - Top-level `docker-compose.yml` composes anything enabled
 - `make services-up` / `make services-down`
-- Reverse proxy via Caddy on a `.oracle.local` mDNS name
+- Reverse proxy via Caddy on a `.pergamon.local` mDNS name
 
 Deliberately **modular** — the LLM + RAG core doesn't depend on any of this. If you don't want calendars, don't enable them.
 
@@ -116,6 +116,6 @@ Opt-in, local-only — the LLM can ground answers in *your* life, not just Wikip
 
 ## Open questions
 
-- Should the oracle have a lightweight web UI (not just CLI)? Small FastAPI frontend would make it browsable on phones over LAN.
+- Should the pergamon have a lightweight web UI (not just CLI)? Small FastAPI frontend would make it browsable on phones over LAN.
 - How to structure corpus manifest so a shelf can be selected on install? (`make corpus SHELF=medical,repair`)
 - Model management: do we need a "slim profile" (3B) vs "default" (8B) vs "cage" (32B+) toggle in Makefile?

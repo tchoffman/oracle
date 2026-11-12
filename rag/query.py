@@ -1,4 +1,4 @@
-"""Ask the oracle a question. Retrieves relevant chunks, synthesizes with the LLM."""
+"""Ask the library a question. Retrieves relevant chunks, synthesizes with the LLM."""
 from __future__ import annotations
 
 import sys
@@ -14,11 +14,11 @@ from rag.config import load_config
 console = Console()
 
 
-SYSTEM_PROMPT = """You are the Oracle, an offline knowledge assistant for someone
-operating off-grid without internet. Answer practically and concisely using ONLY the
-provided CONTEXT when possible. If context doesn't cover the question, say so and offer
-your best general knowledge, flagging it as such. For medical, legal, or dangerous
-subjects, remind the user of the obvious limits of any text-based reference."""
+SYSTEM_PROMPT = """You are Pergamon, an offline library assistant for someone operating
+off-grid without internet. Answer practically and concisely using ONLY the provided
+CONTEXT when possible. If context doesn't cover the question, say so and offer your
+best general knowledge, flagging it as such. For medical, legal, or dangerous subjects,
+remind the user of the obvious limits of any text-based reference."""
 
 
 def retrieve(cfg: dict, question: str) -> list[dict]:
@@ -74,7 +74,7 @@ def ask(question: str) -> int:
         options={"temperature": cfg["temperature"], "num_ctx": cfg["num_ctx"]},
     )
 
-    console.print(Rule("[bold green]Oracle"))
+    console.print(Rule("[bold green]Pergamon"))
     buf = []
     for chunk in stream:
         piece = chunk["message"]["content"]

@@ -1,4 +1,4 @@
-"""Interactive setup TUI for the oracle.
+"""Interactive setup TUI for Pergamon.
 
 Walks the operator through a profile pick + optional per-item customization,
 then writes config/install.local.yaml so the fetchers do the right thing on
@@ -160,7 +160,7 @@ def main() -> int:
     current = load_effective_config()
     starting_enable = current["enable"]
     console.print(Panel.fit(
-        "[bold]Oracle setup[/bold]\n\n"
+        "[bold]Pergamon setup[/bold]\n\n"
         "This picks what gets installed when you run [cyan]make corpus[/cyan] / [cyan]make all[/cyan].\n"
         "Choices are written to [dim]config/install.local.yaml[/dim] (gitignored).",
         title="welcome", style="green",

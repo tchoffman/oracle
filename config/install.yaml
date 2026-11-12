@@ -1,7 +1,7 @@
-# Oracle install config. This file is the committed default — do not edit
+# Pergamon install config. This file is the committed default — do not edit
 # in place for personal installs. Instead:
 #
-#   1. Run `make setup` (or `oracle setup`) to generate `config/install.local.yaml`
+#   1. Run `make setup` (or `pergamon setup`) to generate `config/install.local.yaml`
 #   2. OR copy a preset: `cp config/presets/default.yaml config/install.local.yaml`
 #   3. OR hand-edit `config/install.local.yaml`
 #

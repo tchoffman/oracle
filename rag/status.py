@@ -1,4 +1,4 @@
-"""Print oracle readiness: deps, models, corpus, index."""
+"""Print Pergamon readiness: deps, models, corpus, index."""
 from __future__ import annotations
 
 import shutil
@@ -52,7 +52,7 @@ def chroma_count(cfg: dict) -> int:
 
 def main() -> int:
     cfg = load_config()
-    table = Table(title="Oracle status", show_lines=False)
+    table = Table(title="Pergamon status", show_lines=False)
     table.add_column("Component", style="cyan")
     table.add_column("Status")
 
@@ -64,7 +64,7 @@ def main() -> int:
     elif have("kiwix-serve"):
         table.add_row("kiwix-serve", "[green]headless binary[/green] (on PATH)")
     elif Path("/Applications/Kiwix.app").exists():
-        table.add_row("kiwix-serve", "[yellow]GUI only[/yellow] (Kiwix.app — oracle serve will launch it)")
+        table.add_row("kiwix-serve", "[yellow]GUI only[/yellow] (Kiwix.app — pergamon serve will launch it)")
     else:
         table.add_row("kiwix-serve", "[red]missing[/red]")
 

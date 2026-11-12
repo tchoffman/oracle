@@ -1,6 +1,6 @@
-# Oracle catalog — the "menu" `oracle setup` chooses from.
+# Pergamon catalog — the "menu" `pergamon setup` chooses from.
 #
-# This is a machine-readable list of every dataset the oracle can install,
+# This is a machine-readable list of every dataset the pergamon can install,
 # with each item's options (variants, size filters, URL patterns, licensing).
 # The install.yaml / install.local.yaml files reference entries here by `id`
 # and set per-entry options.
@@ -24,7 +24,7 @@ items:
     title: Wikipedia (English)
     shelf: reference
     fetcher: kiwix-zim
-    description: The core of the oracle. Choose variant by disk budget.
+    description: The core of the pergamon. Choose variant by disk budget.
     kiwix:
       project: wikipedia
       prefix_by_variant:

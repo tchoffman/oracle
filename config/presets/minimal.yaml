@@ -1,8 +1,8 @@
-# Minimal preset — smallest viable oracle. ~1 GB total.
+# Minimal preset — smallest viable pergamon. ~1 GB total.
 # Just the essentials: a compact wiki + survival PDFs.
 
 name: minimal
-description: "Smallest viable oracle. ~1 GB total."
+description: "Smallest viable pergamon. ~1 GB total."
 
 enable:
   wikipedia:

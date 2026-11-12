@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install system dependencies for the oracle. Idempotent — safe to re-run.
+# Install system dependencies for the pergamon. Idempotent — safe to re-run.
 #
 # - ollama: installed via Homebrew (has Metal/GPU acceleration on Apple Silicon)
 # - kiwix-serve: Homebrew doesn't ship it; we grab the official prebuilt binary
@@ -42,10 +42,10 @@ fi
 # ---- kiwix-serve ----
 # We try two paths in order:
 #   1. Headless kiwix-serve binary — scriptable, ideal.
-#   2. Kiwix.app GUI (Homebrew cask) — fallback; `oracle serve` opens it with your ZIMs.
+#   2. Kiwix.app GUI (Homebrew cask) — fallback; `pergamon serve` opens it with your ZIMs.
 #
 # The kiwix.org CDN is sometimes very slow. If the binary download times out, the
-# cask still installs the GUI app and the oracle degrades gracefully.
+# cask still installs the GUI app and the pergamon degrades gracefully.
 install_kiwix_binary() {
   case "$OS-$ARCH" in
     Darwin-arm64)  platform="macos-arm64" ;;

@@ -2,7 +2,7 @@
 # Broad wiki coverage + repair + core survival PDFs.
 
 name: default
-description: "Broad starter oracle. ~5 GB. Fits a 16 GB Mac comfortably."
+description: "Broad starter pergamon. ~5 GB. Fits a 16 GB Mac comfortably."
 
 enable:
   wikipedia:

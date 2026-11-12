@@ -1,6 +1,6 @@
-# Oracle quick reference — print and keep with the machine
+# Pergamon quick reference — print and keep with the machine
 
-The one-pager fallback when the oracle itself is unavailable. Not exhaustive; enough to make smart decisions until you can consult the actual books.
+The one-pager fallback when the pergamon itself is unavailable. Not exhaustive; enough to make smart decisions until you can consult the actual books.
 
 ## Water (first priority after shelter)
 
@@ -56,16 +56,16 @@ Prioritize accordingly. Shelter beats food every time.
 - **Avoid**: anything milky, almonds-smelling, umbrella flower clusters, 3-leaf plants
 - **Rule**: universal edibility test takes 24h. If starving and unsure, skip it — hunger kills slower than poison.
 
-## Oracle commands cheat sheet
+## Pergamon commands cheat sheet
 
 ```
-bin/oracle ask "..."    # ask the oracle
-bin/oracle serve        # browse wikis at http://localhost:8080
-bin/oracle status       # what's working
+bin/pergamon ask "..."    # ask the pergamon
+bin/pergamon serve        # browse wikis at http://localhost:8080
+bin/pergamon status       # what's working
 make corpus             # refresh downloads
 make index              # re-embed any new PDFs
 ```
 
 ---
 
-*This sheet is a floor, not a ceiling. Real answers are in the oracle and the books. Print, laminate, stash with the machine.*
+*This sheet is a floor, not a ceiling. Real answers are in the pergamon and the books. Print, laminate, stash with the machine.*

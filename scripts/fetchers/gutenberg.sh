@@ -21,7 +21,7 @@ TOP_N="${GUTENBERG_TOP_N:-100}"
 log "fetching top $TOP_N Gutenberg books into $BOOK_DIR"
 
 # Produce a list of (id, slug) pairs for the top N books.
-"$PY" - <<PY > /tmp/oracle-gutenberg-list.tsv
+"$PY" - <<PY > /tmp/pergamon-gutenberg-list.tsv
 import urllib.request, re, sys, html
 
 def get(url):
@@ -97,8 +97,8 @@ while IFS=$'\t' read -r bid slug; do
     fi
     rm -f "$out"
   done
-done < /tmp/oracle-gutenberg-list.tsv
+done < /tmp/pergamon-gutenberg-list.tsv
 
-rm -f /tmp/oracle-gutenberg-list.tsv
+rm -f /tmp/pergamon-gutenberg-list.tsv
 
 ok "gutenberg: $count books under $BOOK_DIR"

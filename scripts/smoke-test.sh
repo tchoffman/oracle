@@ -66,14 +66,14 @@ else
   fi
 fi
 
-hdr "5. Ask the oracle"
-answer="$(bin/oracle ask "In one sentence: why is clean water the top priority after shelter?" 2>&1 | tail -20)"
+hdr "5. Ask the pergamon"
+answer="$(bin/pergamon ask "In one sentence: why is clean water the top priority after shelter?" 2>&1 | tail -20)"
 if echo "$answer" | grep -qi -E "water|dehydrat|hydrat|drink"; then
-  pass "oracle ask produced a plausible answer"
+  pass "pergamon ask produced a plausible answer"
 else
-  echo "---last 20 lines of oracle ask output---"
+  echo "---last 20 lines of pergamon ask output---"
   echo "$answer"
-  fail "oracle ask output didn't contain water-related terms"
+  fail "pergamon ask output didn't contain water-related terms"
 fi
 
 echo ""

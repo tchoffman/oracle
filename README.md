@@ -1,13 +1,15 @@
-# Oracle
+# Pergamon
 
 An offline reference machine for extended off-grid scenarios. Combines large knowledge bases (Wikipedia, survival manuals, repair guides, OpenStreetMap, etc.) with a locally-running LLM so you can **research, plan, and look things up without any internet**.
 
-This repo is the **recipe**, not the appliance. Running the scripts on a fresh machine produces a working oracle: models pulled, corpus downloaded, RAG index built, servers ready. The actual knowledge/models are gitignored and live in `build/` locally.
+Named after the [ancient library of Pergamon](https://en.wikipedia.org/wiki/Library_of_Pergamum) — Alexandria's rival, famous for parchment and for surviving when other collections burned.
+
+This repo is the **recipe**, not the appliance. Running the scripts on a fresh machine produces a working Pergamon: models pulled, corpus downloaded, RAG index built, servers ready. The actual knowledge/models are gitignored and live in `build/` locally.
 
 ## Design
 
 ```
-┌─ GitHub (this repo) ──────────────┐    ┌─ Local machine (the oracle) ────┐
+┌─ GitHub (this repo) ──────────────┐    ┌─ Local machine (your Pergamon) ─┐
 │ scripts/     — build recipe        │ ─> │ build/models/    — Ollama blobs │
 │ bin/         — CLI tools          │    │ build/corpus/    — ZIMs + PDFs  │
 │ rag/         — Python package     │    │ build/chroma/    — vector DB    │
@@ -18,12 +20,12 @@ This repo is the **recipe**, not the appliance. Running the scripts on a fresh m
 ## Quick start (on a fresh Mac)
 
 ```bash
-git clone https://github.com/tchoffman/oracle.git
-cd oracle
+git clone https://github.com/tchoffman/pergamon.git
+cd pergamon
 make setup        # (optional) pick what to install interactively
 make all          # install deps → pull models → fetch corpus → build index
-bin/oracle ask "how do I purify surface water?"
-bin/oracle serve  # browse ZIMs at http://localhost:8080
+bin/pergamon ask "how do I purify surface water?"
+bin/pergamon serve  # browse ZIMs at http://localhost:8080
 ```
 
 Skip `make setup` and `make all` uses the **default** preset (~5 GB, fits a 16 GB Mac). Other presets live in `config/presets/`:
@@ -44,8 +46,8 @@ Skip `make setup` and `make all` uses the **default** preset (~5 GB, fits a 16 G
 | Primary model   | General Q&A + RAG synthesis                         | `llama3.1:8b-instruct-q4_K_M` |
 | Embedding model | Semantic search over corpus                         | `nomic-embed-text`    |
 | Vector store    | Retrieves relevant passages for RAG                 | [Chroma](https://www.trychroma.com) |
-| Offline wikis   | Wikipedia, iFixit, WikiHow, etc. (ZIM format)       | [kiwix-serve](https://kiwix.org) |
-| CLI             | `oracle ask`, `oracle serve`, `oracle status`       | Python + bash         |
+| Offline wikis   | Wikipedia, iFixit, etc. (ZIM format)                | [kiwix-serve](https://kiwix.org) |
+| CLI             | `pergamon ask`, `pergamon serve`, `pergamon status` | Python + bash         |
 
 ## Hardware
 
@@ -55,10 +57,10 @@ Dev target: M4 MacBook Air, 16GB RAM, ~80GB free disk. See [docs/hardware.md](do
 
 See [docs/roadmap.md](docs/roadmap.md) for planned modules:
 
-- **Comms** — radio / Meshtastic / Reticulum integration so oracles can talk to each other without internet
+- **Comms** — radio / Meshtastic / Reticulum integration so pergamons can talk to each other without internet
 - **Survival compendium** — a curated, deeper offline library (medical, food, repair, agriculture, …)
 - **In-home services** — calendar, photos, notes, media, home automation hosted on the same box
 
-## Why "oracle"?
+## Why "Pergamon"?
 
-An oracle machine: lots of inputs, synthesized answers, trusted when the regular channels are down.
+A library that survives when the rest doesn't. Lots of inputs, synthesized answers, trusted when the regular channels are down.

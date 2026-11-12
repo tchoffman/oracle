@@ -6,7 +6,7 @@ VENV := $(BUILD_DIR)/venv
 PY := $(VENV)/bin/python
 
 help:
-	@echo "Oracle — offline knowledge appliance builder"
+	@echo "Pergamon — offline knowledge appliance builder"
 	@echo ""
 	@echo "Targets:"
 	@echo "  make setup    — interactively pick what to install (writes install.local.yaml)"
@@ -23,14 +23,14 @@ help:
 	@echo "  make clean      — wipe build/ (redownload everything)"
 	@echo ""
 	@echo "Day-to-day CLI (after make all):"
-	@echo "  bin/oracle ask \"your question\""
-	@echo "  bin/oracle serve"
-	@echo "  bin/oracle status"
+	@echo "  bin/pergamon ask \"your question\""
+	@echo "  bin/pergamon serve"
+	@echo "  bin/pergamon status"
 
 all: deps venv models corpus index
 	@echo ""
-	@echo "Oracle build complete. Try:"
-	@echo "  bin/oracle ask \"how do I purify water?\""
+	@echo "Pergamon build complete. Try:"
+	@echo "  bin/pergamon ask \"how do I purify water?\""
 
 deps:
 	@scripts/install-deps.sh
@@ -51,10 +51,10 @@ index: venv corpus
 	@scripts/build-index.sh
 
 status:
-	@bin/oracle status
+	@bin/pergamon status
 
 setup: venv
-	@bin/oracle setup
+	@bin/pergamon setup
 
 plan: venv
 	@DRY_RUN=1 scripts/fetch-corpus.sh
@@ -63,10 +63,10 @@ smoke-test:
 	@scripts/smoke-test.sh
 
 serve:
-	@bin/oracle serve
+	@bin/pergamon serve
 
 ask:
-	@echo "Usage: bin/oracle ask \"your question\""
+	@echo "Usage: bin/pergamon ask \"your question\""
 
 clean:
 	@echo "Wiping build/ — models and corpus will need to be re-downloaded."
