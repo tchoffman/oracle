@@ -1,0 +1,11 @@
+# Minimal preset — smallest viable oracle. ~1 GB total.
+# Just the essentials: a compact wiki + survival PDFs.
+
+name: minimal
+description: "Smallest viable oracle. ~1 GB total."
+
+enable:
+  wikipedia:
+    variant: simple
+  fm-21-76-survival: {}
+  fm-3-05-70-survival: {}

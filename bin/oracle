@@ -10,13 +10,15 @@ usage() {
 oracle — your offline knowledge oracle
 
 Usage:
+  oracle setup               Interactively pick what to install
   oracle ask "question"      Ask the oracle (RAG over your corpus)
   oracle serve [--port N]    Serve ZIMs via kiwix-serve (default port 8080)
   oracle status              Show what's installed / indexed / ready
   oracle shell               Drop into a REPL with the venv activated
 
 Build the oracle first:
-  make all
+  make setup   (optional — choose what to install)
+  make all     (or re-run after setup to download selections)
 
 See README.md for details.
 EOF
@@ -33,6 +35,12 @@ cmd="${1:-help}"
 shift || true
 
 case "$cmd" in
+  setup)
+    require_venv
+    cd "$REPO_ROOT"
+    exec "$VENV_PY" -m rag.setup "$@"
+    ;;
+
   ask)
     if [[ $# -eq 0 ]]; then
       echo "Usage: oracle ask \"your question here\"" >&2

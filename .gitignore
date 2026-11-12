@@ -1,6 +1,9 @@
 # The oracle's local build artifacts — never committed, always reproducible.
 build/
 
+# Per-install user customization (output of `oracle setup`).
+config/install.local.yaml
+
 # Python
 .venv/
 __pycache__/

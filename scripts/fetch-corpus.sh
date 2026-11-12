@@ -1,111 +1,128 @@
 #!/usr/bin/env bash
-# Download the starter corpus listed in corpus/sources.yaml.
-# Idempotent — skips files that already exist with non-zero size.
+# Config-driven corpus dispatcher.
+#
+# Reads config/install.local.yaml (merged with config/install.yaml and the named
+# preset) and runs the appropriate fetcher per enabled item.
+#
+# Idempotent — individual fetchers skip already-complete downloads.
+#
+# Usage:
+#   scripts/fetch-corpus.sh              # obey install config
+#   DRY_RUN=1 scripts/fetch-corpus.sh    # print the plan without downloading
+
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-SOURCES="corpus/sources.yaml"
-ZIM_DIR="build/corpus/zims"
-PDF_DIR="build/corpus/pdfs"
+if [[ ! -x build/venv/bin/python ]]; then
+  echo "Error: Python venv not built. Run 'make venv' first." >&2
+  exit 1
+fi
+PY=build/venv/bin/python
 
-mkdir -p "$ZIM_DIR" "$PDF_DIR"
+# Produce a tab-separated plan: fetcher<TAB>env1=val1;env2=val2
+PLAN="$(
+"$PY" - <<'PY'
+import sys
+from rag.install_config import load_catalog, load_effective_config, item_size_mb
 
-# Parse sources.yaml using Python. Prefer the venv's Python (3.11+) since the
-# system Python on macOS can be 3.9 which lacks some syntax we use.
-PY_BIN="build/venv/bin/python"
-[[ -x "$PY_BIN" ]] || PY_BIN="python3"
+catalog = load_catalog()
+cfg = load_effective_config()
+enable = cfg["enable"]
 
-# Emit tab-separated: type\tname\turl\tmanual
-#   For ZIM entries with kiwix_project/kiwix_prefix, resolve the latest dated file.
-"$PY_BIN" - <<'PY' > /tmp/oracle-sources.tsv
-import urllib.request, re, sys
+if not enable:
+    print("# Nothing enabled in install config.", file=sys.stderr)
+    sys.exit(0)
 
-try:
-    import yaml  # type: ignore
-except ImportError:
-    # PyYAML not in system Python — fall back to a tiny parser for this script.
-    print("ERROR: PyYAML missing. Run 'make venv' first.", file=sys.stderr)
-    sys.exit(1)
-
-
-def resolve_kiwix_latest(project, prefix):
-    url = "https://download.kiwix.org/zim/" + project + "/"
-    try:
-        with urllib.request.urlopen(url, timeout=30) as r:
-            html = r.read().decode("utf-8", errors="ignore")
-    except Exception as e:
-        print("  WARN: cannot list " + url + ": " + str(e), file=sys.stderr)
-        return None
-    candidates = re.findall(r'({}[^"<>\s]+\.zim)'.format(re.escape(prefix)), html)
-    if not candidates:
-        print("  WARN: no files match prefix '" + prefix + "' under " + url, file=sys.stderr)
-        return None
-    # ZIM files include YYYY-MM dates; sort lexicographically picks the latest.
-    latest = sorted(set(candidates))[-1]
-    return url + latest
-
-
-with open("corpus/sources.yaml") as f:
-    data = yaml.safe_load(f) or {}
-
-for e in (data.get("zims") or []):
-    if e.get("optional"):
+for item_id, opts in enable.items():
+    item = catalog.get(item_id)
+    if not item:
+        print(f"# WARN unknown item: {item_id}", file=sys.stderr)
         continue
-    url = e.get("url")
-    if not url and e.get("kiwix_project") and e.get("kiwix_prefix"):
-        url = resolve_kiwix_latest(e["kiwix_project"], e["kiwix_prefix"])
-    if not url:
-        print(f"  SKIP zim {e['name']}: no url resolvable", file=sys.stderr)
-        continue
-    manual = "1" if e.get("manual") else "0"
-    print(f"zims\t{e['name']}\t{url}\t{manual}")
+    fetcher = item.get("fetcher")
+    opts = opts or {}
+    merged_opts = {**(item.get("defaults") or {}), **opts}
+    env_pairs = []
 
-for e in (data.get("pdfs") or []):
-    url = e.get("url", "")
-    manual = "1" if e.get("manual") else "0"
-    print(f"pdfs\t{e['name']}\t{url}\t{manual}")
+    if fetcher == "kiwix-zim":
+        kcfg = item.get("kiwix", {})
+        variant = merged_opts.get("variant") or next(iter(kcfg.get("prefix_by_variant") or {"":""}))
+        prefix = (kcfg.get("prefix_by_variant") or {}).get(variant)
+        if not prefix:
+            print(f"# WARN no kiwix prefix for variant '{variant}' on {item_id}", file=sys.stderr)
+            continue
+        env_pairs = [
+            f"KIWIX_PROJECT={kcfg['project']}",
+            f"KIWIX_PREFIX={prefix}",
+            f"OUTPUT_NAME={item_id}",
+        ]
+    elif fetcher == "archive-pdf":
+        env_pairs = [
+            f"PDF_URL={item['archive']['url']}",
+            f"OUTPUT_NAME={item_id}",
+        ]
+    elif fetcher == "gutenberg":
+        env_pairs = [f"GUTENBERG_TOP_N={merged_opts.get('top_n', 100)}"]
+    elif fetcher == "stackexchange":
+        sites = merged_opts.get("sites") or []
+        env_pairs = [f"SE_SITES={','.join(sites)}"]
+    elif fetcher == "mirror-site":
+        m = item.get("mirror", {})
+        env_pairs = [
+            f"MIRROR_URL={m['seed_url']}",
+            f"MIRROR_ALLOWED_HOSTS={','.join(m.get('allowed_hosts') or [])}",
+            f"MIRROR_DEPTH={m.get('depth', 3)}",
+            f"OUTPUT_NAME={item_id}",
+        ]
+    elif fetcher == "osmand-region":
+        regions = merged_opts.get("regions") or []
+        if not regions:
+            continue
+        env_pairs = [f"OSM_REGIONS={','.join(regions)}"]
+    else:
+        print(f"# WARN unknown fetcher '{fetcher}' for {item_id}", file=sys.stderr)
+        continue
+
+    size = item_size_mb(item, merged_opts)
+    size_str = f"{size} MB" if size else "?"
+    print(f"{fetcher}\t{item_id}\t{size_str}\t{';'.join(env_pairs)}")
 PY
+)"
 
-while IFS=$'\t' read -r kind name url manual; do
-  case "$kind" in
-    zims) dir="$ZIM_DIR"; ext="zim" ;;
-    pdfs) dir="$PDF_DIR"; ext="pdf" ;;
-    *) continue ;;
-  esac
-  out="$dir/$name.$ext"
+if [[ -z "$PLAN" ]]; then
+  echo "Nothing to fetch. Run 'make setup' or edit config/install.local.yaml."
+  exit 0
+fi
 
-  if [[ "$manual" == "1" ]]; then
-    if [[ -s "$out" ]]; then
-      echo "  [ok] $name (manually placed at $out)"
-    else
-      echo "  [!] $name — manual download required; drop PDF at: $out"
-      echo "      Source: $url"
-    fi
-    continue
-  fi
+echo "==> Fetch plan"
+printf "  %-18s %-28s %s\n" "fetcher" "item" "size"
+printf "  %-18s %-28s %s\n" "------"  "----"  "----"
+while IFS=$'\t' read -r fetcher item size envs; do
+  printf "  %-18s %-28s %s\n" "$fetcher" "$item" "$size"
+done <<< "$PLAN"
 
-  if [[ -s "$out" ]]; then
-    echo "  [ok] $name already downloaded ($(du -h "$out" | cut -f1))"
-    continue
-  fi
+if [[ "${DRY_RUN:-0}" == "1" ]]; then
+  echo ""
+  echo "DRY_RUN=1 — not fetching."
+  exit 0
+fi
 
-  echo "  [+] fetching $name"
-  echo "      $url"
-  # -L follow redirects, --retry handles transient network failures,
-  # --continue-at - resumes partial downloads from previous runs.
-  if ! curl -L --fail --retry 5 --retry-delay 10 --retry-all-errors \
-        --continue-at - -o "$out" "$url"; then
-    echo "    ...failed; partial file kept so you can resume with another run"
-    exit 1
-  fi
-done < /tmp/oracle-sources.tsv
-
-rm -f /tmp/oracle-sources.tsv
+echo ""
+echo "==> Executing"
+while IFS=$'\t' read -r fetcher item size envs; do
+  echo ""
+  echo "---- $item ($fetcher, $size) ----"
+  # Convert "k=v;k=v" to inline env for a single invocation
+  env_assignments=()
+  IFS=';' read -r -a parts <<< "$envs"
+  for p in "${parts[@]}"; do
+    env_assignments+=("$p")
+  done
+  env "${env_assignments[@]}" "scripts/fetchers/${fetcher}.sh" || {
+    echo "    !! $item failed; continuing"
+  }
+done <<< "$PLAN"
 
 echo ""
 echo "==> Corpus summary"
-echo "ZIMs:"
-ls -lh "$ZIM_DIR" 2>/dev/null | tail -n +2 | awk '{printf "  %s  %s\n", $5, $9}'
-echo "PDFs:"
-ls -lh "$PDF_DIR" 2>/dev/null | tail -n +2 | awk '{printf "  %s  %s\n", $5, $9}'
+"$PY" -m rag.status 2>/dev/null | tail -15 || true

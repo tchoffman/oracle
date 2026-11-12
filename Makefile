@@ -1,4 +1,4 @@
-.PHONY: help all deps models corpus index venv clean status serve ask smoke-test
+.PHONY: help all deps models corpus index venv clean status serve ask setup plan smoke-test
 
 SHELL := /bin/bash
 BUILD_DIR := build
@@ -9,11 +9,13 @@ help:
 	@echo "Oracle — offline knowledge appliance builder"
 	@echo ""
 	@echo "Targets:"
+	@echo "  make setup    — interactively pick what to install (writes install.local.yaml)"
+	@echo "  make plan     — show the planned downloads without fetching"
 	@echo "  make all      — full build: deps + models + corpus + index"
 	@echo "  make deps     — install ollama + kiwix-tools via brew (idempotent)"
 	@echo "  make venv     — create Python venv and install rag/ requirements"
 	@echo "  make models   — pull LLM + embedding model via ollama"
-	@echo "  make corpus   — download ZIMs and public-domain PDFs into build/corpus"
+	@echo "  make corpus   — download whatever is enabled in config/install*.yaml"
 	@echo "  make index    — chunk + embed corpus PDFs into Chroma"
 	@echo "  make status     — print what's installed / downloaded / indexed"
 	@echo "  make serve      — launch kiwix-serve (ZIMs at http://localhost:8080)"
@@ -50,6 +52,12 @@ index: venv corpus
 
 status:
 	@bin/oracle status
+
+setup: venv
+	@bin/oracle setup
+
+plan: venv
+	@DRY_RUN=1 scripts/fetch-corpus.sh
 
 smoke-test:
 	@scripts/smoke-test.sh

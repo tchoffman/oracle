@@ -1,0 +1,46 @@
+# Comprehensive preset — for cage-class disk. ~80 GB total.
+# Full English Wikipedia + wide survival/education/technical coverage.
+
+name: comprehensive
+description: "Cage-class deep library. ~80 GB. Needs the disk for it."
+
+enable:
+  wikipedia:
+    variant: nopic             # ~53 GB
+  wikivoyage:
+    variant: nopic
+  wiktionary:
+    variant: nopic
+  wikibooks: {}
+  wikisource: {}
+  wikiquote: {}
+  wikiversity: {}
+  ifixit: {}
+  appropedia: {}
+  arch-wiki: {}
+  khan-academy:
+    variant: core
+  gutenberg:
+    top_n: 2000
+  standard-ebooks: {}
+  stackexchange:
+    sites:
+      - outdoors
+      - gardening
+      - cooking
+      - homebrew
+      - diy
+      - woodworking
+      - bicycles
+      - electronics
+      - sustainability
+      - biology
+      - chemistry
+      - ham
+      - mechanics
+      - medicalsciences
+  low-tech-magazine: {}
+  tldp: {}
+  meshtastic-docs: {}
+  fm-21-76-survival: {}
+  fm-3-05-70-survival: {}

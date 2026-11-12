@@ -1,0 +1,20 @@
+# Default preset — fits a 16 GB / 80 GB free Mac. ~5 GB total.
+# Broad wiki coverage + repair + core survival PDFs.
+
+name: default
+description: "Broad starter oracle. ~5 GB. Fits a 16 GB Mac comfortably."
+
+enable:
+  wikipedia:
+    variant: simple
+  wikivoyage:
+    variant: nopic
+  ifixit: {}
+  wiktionary:
+    variant: simple
+  fm-21-76-survival: {}
+  fm-3-05-70-survival: {}
+  stackexchange:
+    sites: ["outdoors", "gardening", "cooking", "homebrew", "diy"]
+  gutenberg:
+    top_n: 100

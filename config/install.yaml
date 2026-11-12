@@ -1,0 +1,21 @@
+# Oracle install config. This file is the committed default — do not edit
+# in place for personal installs. Instead:
+#
+#   1. Run `make setup` (or `oracle setup`) to generate `config/install.local.yaml`
+#   2. OR copy a preset: `cp config/presets/default.yaml config/install.local.yaml`
+#   3. OR hand-edit `config/install.local.yaml`
+#
+# `fetch-corpus.sh` reads install.local.yaml if it exists; otherwise it
+# falls back to this file. Everything a user needs to customize is in
+# install.local.yaml, which is gitignored.
+
+preset: default   # which file under config/presets/ to inherit from
+
+# Any entries listed here override the preset for this install.
+# Example:
+# overrides:
+#   wikipedia:
+#     variant: nopic           # bigger than the preset chose
+#   khan-academy:
+#     variant: core
+overrides: {}

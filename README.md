@@ -20,12 +20,21 @@ This repo is the **recipe**, not the appliance. Running the scripts on a fresh m
 ```bash
 git clone https://github.com/tchoffman/oracle.git
 cd oracle
+make setup        # (optional) pick what to install interactively
 make all          # install deps → pull models → fetch corpus → build index
-oracle ask "how do I purify surface water?"
-oracle serve      # browse ZIMs at http://localhost:8080
+bin/oracle ask "how do I purify surface water?"
+bin/oracle serve  # browse ZIMs at http://localhost:8080
 ```
 
-`make all` is idempotent — re-running only does work that's missing. See `make help`.
+Skip `make setup` and `make all` uses the **default** preset (~5 GB, fits a 16 GB Mac). Other presets live in `config/presets/`:
+
+| Preset | Size | What |
+|---|---|---|
+| **minimal** | ~1 GB | Wikipedia Simple + survival PDFs. Barebones. |
+| **default** | ~5 GB | + Wikivoyage, Wiktionary, iFixit, SE dumps, top-100 Gutenberg. |
+| **comprehensive** | ~80 GB | Full English Wikipedia, Khan Academy core, wide SE dumps, mirrored docs sites. Cage-class disk. |
+
+`make setup` writes `config/install.local.yaml` (gitignored) — you can also edit it by hand. `make plan` shows what would be fetched without downloading. `make all` is idempotent — re-running only does work that's missing. See `make help`.
 
 ## What's inside the "app"
 

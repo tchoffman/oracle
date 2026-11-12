@@ -1,0 +1,403 @@
+# Oracle catalog — the "menu" `oracle setup` chooses from.
+#
+# This is a machine-readable list of every dataset the oracle can install,
+# with each item's options (variants, size filters, URL patterns, licensing).
+# The install.yaml / install.local.yaml files reference entries here by `id`
+# and set per-entry options.
+#
+# Fields:
+#   id:           stable key referenced from install.yaml
+#   title:        human-readable name shown in setup TUI
+#   shelf:        logical grouping (reference | medical | repair | ...)
+#   fetcher:      which scripts/fetchers/*.sh handles this
+#   description:  one-line pitch shown in the TUI
+#   options:      list of configurable knobs (variant/count/etc.)
+#   defaults:     default values for those options
+#   size_mb:      typical size for the default (rough, informational)
+
+version: 1
+
+items:
+
+  # ── Wikipedia family ────────────────────────────────────────────────
+  - id: wikipedia
+    title: Wikipedia (English)
+    shelf: reference
+    fetcher: kiwix-zim
+    description: The core of the oracle. Choose variant by disk budget.
+    kiwix:
+      project: wikipedia
+      prefix_by_variant:
+        simple: wikipedia_en-simple_all_nopic_
+        mini:   wikipedia_en_all_mini_
+        nopic:  wikipedia_en_all_nopic_
+        maxi:   wikipedia_en_all_maxi_
+    options:
+      - name: variant
+        prompt: "Which Wikipedia variant?"
+        choices:
+          - value: simple
+            label: "Simple English (text-only) — ~1 GB"
+          - value: mini
+            label: "Full English summaries only — ~14 GB"
+          - value: nopic
+            label: "Full English, text-only — ~53 GB  (sweet spot)"
+          - value: maxi
+            label: "Full English with images+video — ~127 GB"
+    defaults:
+      variant: simple
+    size_mb_by_variant:
+      simple: 1050
+      mini: 14400
+      nopic: 52700
+      maxi: 127000
+
+  - id: wiktionary
+    title: Wiktionary (English)
+    shelf: reference
+    fetcher: kiwix-zim
+    description: Dictionary, etymologies, translations.
+    kiwix:
+      project: wiktionary
+      prefix_by_variant:
+        simple: wiktionary_en-simple_all_nopic_
+        nopic:  wiktionary_en_all_nopic_
+    options:
+      - name: variant
+        prompt: "Which Wiktionary variant?"
+        choices:
+          - value: simple
+            label: "Simple English — ~100 MB"
+          - value: nopic
+            label: "Full English — ~1 GB"
+    defaults:
+      variant: simple
+    size_mb_by_variant:
+      simple: 100
+      nopic: 1000
+
+  - id: wikibooks
+    title: Wikibooks (textbooks + manuals)
+    shelf: reference
+    fetcher: kiwix-zim
+    description: Textbooks — math, chemistry, programming, languages.
+    kiwix:
+      project: wikibooks
+      prefix_by_variant:
+        nopic: wikibooks_en_all_nopic_
+    options: []
+    defaults:
+      variant: nopic
+    size_mb_by_variant:
+      nopic: 5000
+
+  - id: wikisource
+    title: Wikisource (primary texts)
+    shelf: reference
+    fetcher: kiwix-zim
+    description: Primary-source documents — legal, historical, religious.
+    kiwix:
+      project: wikisource
+      prefix_by_variant:
+        nopic: wikisource_en_all_nopic_
+    options: []
+    defaults:
+      variant: nopic
+    size_mb_by_variant:
+      nopic: 10000
+
+  - id: wikiquote
+    title: Wikiquote
+    shelf: classics
+    fetcher: kiwix-zim
+    description: Curated quotes. For morale.
+    kiwix:
+      project: wikiquote
+      prefix_by_variant:
+        nopic: wikiquote_en_all_nopic_
+    options: []
+    defaults:
+      variant: nopic
+    size_mb_by_variant:
+      nopic: 1000
+
+  - id: wikiversity
+    title: Wikiversity (free courses)
+    shelf: education
+    fetcher: kiwix-zim
+    description: Free course materials across disciplines.
+    kiwix:
+      project: wikiversity
+      prefix_by_variant:
+        nopic: wikiversity_en_all_nopic_
+    options: []
+    defaults:
+      variant: nopic
+    size_mb_by_variant:
+      nopic: 1000
+
+  - id: wikivoyage
+    title: Wikivoyage
+    shelf: reference
+    fetcher: kiwix-zim
+    description: Travel guide — practical geography, routes, local info.
+    kiwix:
+      project: wikivoyage
+      prefix_by_variant:
+        nopic: wikivoyage_en_all_nopic_
+        maxi:  wikivoyage_en_all_maxi_
+    options:
+      - name: variant
+        prompt: "Wikivoyage variant?"
+        choices:
+          - value: nopic
+            label: "Text only — ~500 MB"
+          - value: maxi
+            label: "With images — ~2 GB"
+    defaults:
+      variant: nopic
+    size_mb_by_variant:
+      nopic: 500
+      maxi: 2000
+
+  # ── Repair / DIY ────────────────────────────────────────────────────
+  - id: ifixit
+    title: iFixit repair manuals
+    shelf: repair
+    fetcher: kiwix-zim
+    description: Thousands of repair guides for electronics and appliances.
+    kiwix:
+      project: ifixit
+      prefix_by_variant:
+        all: ifixit_en_all_
+    options: []
+    defaults:
+      variant: all
+    size_mb_by_variant:
+      all: 3400
+
+  - id: appropedia
+    title: Appropedia (DIY sustainability)
+    shelf: low-tech
+    fetcher: kiwix-zim
+    description: Wiki of appropriate-tech / DIY sustainability projects.
+    kiwix:
+      project: appropedia
+      prefix_by_variant:
+        all: appropedia_en_all_
+    options: []
+    defaults:
+      variant: all
+    size_mb_by_variant:
+      all: 500
+
+  - id: arch-wiki
+    title: Arch Linux Wiki
+    shelf: computing
+    fetcher: kiwix-zim
+    description: Best general Linux reference, even if you don't run Arch.
+    kiwix:
+      project: other
+      prefix_by_variant:
+        all: archlinux_en_all_nopic_
+    options: []
+    defaults:
+      variant: all
+    size_mb_by_variant:
+      all: 2000
+
+  # ── Education ───────────────────────────────────────────────────────
+  - id: khan-academy
+    title: Khan Academy
+    shelf: education
+    fetcher: kiwix-zim
+    description: K–12 courses (math, science, humanities).
+    kiwix:
+      project: other
+      prefix_by_variant:
+        core: khanacademy_en_core_
+        all:  khanacademy_en_all_
+    options:
+      - name: variant
+        prompt: "Khan Academy scope?"
+        choices:
+          - value: core
+            label: "Core subjects only — ~5 GB"
+          - value: all
+            label: "All subjects — ~90 GB"
+    defaults:
+      variant: core
+    size_mb_by_variant:
+      core: 5000
+      all: 90000
+
+  # ── Classics / Morale ───────────────────────────────────────────────
+  - id: gutenberg
+    title: Project Gutenberg (top N books)
+    shelf: classics
+    fetcher: gutenberg
+    description: Public-domain classics. Choose how many of the top-downloaded.
+    options:
+      - name: top_n
+        prompt: "How many top books?"
+        choices:
+          - value: 100
+            label: "Top 100 — ~300 MB"
+          - value: 500
+            label: "Top 500 — ~1.5 GB"
+          - value: 2000
+            label: "Top 2000 — ~6 GB"
+          - value: 10000
+            label: "Top 10000 — ~30 GB"
+    defaults:
+      top_n: 500
+    size_mb_by_option:
+      top_n:
+        100: 300
+        500: 1500
+        2000: 6000
+        10000: 30000
+
+  - id: standard-ebooks
+    title: Standard Ebooks
+    shelf: classics
+    fetcher: mirror-site
+    description: Beautifully-formatted public-domain classics.
+    mirror:
+      seed_url: https://standardebooks.org/opds/all
+      allowed_hosts: ["standardebooks.org"]
+    options: []
+    defaults: {}
+    size_mb_by_variant:
+      default: 2000
+
+  # ── Technical Q&A ───────────────────────────────────────────────────
+  - id: stackexchange
+    title: Stack Exchange dumps
+    shelf: technical-qa
+    fetcher: stackexchange
+    description: Full Q&A dumps from archive.org. Pick the sites you want.
+    options:
+      - name: sites
+        prompt: "Which Stack Exchange sites?"
+        multi: true
+        choices:
+          - value: outdoors
+            label: "Outdoors — hiking, camping, hunting (~150 MB)"
+          - value: gardening
+            label: "Gardening & Landscaping (~200 MB)"
+          - value: cooking
+            label: "Seasoned Advice (cooking) (~500 MB)"
+          - value: homebrew
+            label: "Homebrewing (~80 MB)"
+          - value: bicycles
+            label: "Bicycles (~200 MB)"
+          - value: diy
+            label: "DIY Home Improvement (~500 MB)"
+          - value: woodworking
+            label: "Woodworking (~150 MB)"
+          - value: electronics
+            label: "Electrical Engineering (~1 GB)"
+          - value: sustainability
+            label: "Sustainability (~30 MB)"
+          - value: biology
+            label: "Biology (~300 MB)"
+          - value: chemistry
+            label: "Chemistry (~400 MB)"
+          - value: physics
+            label: "Physics (~1 GB)"
+          - value: medicalsciences
+            label: "Medical Sciences (~100 MB)"
+          - value: ham
+            label: "Amateur Radio (~80 MB)"
+          - value: aviation
+            label: "Aviation (~400 MB)"
+          - value: boating
+            label: "Boating & Nautical (~30 MB)"
+          - value: mechanics
+            label: "Motor Vehicle Maintenance (~200 MB)"
+    defaults:
+      sites: ["outdoors", "gardening", "cooking", "homebrew", "diy"]
+
+  # ── Low-tech reference ──────────────────────────────────────────────
+  - id: low-tech-magazine
+    title: Low-Tech Magazine (mirror)
+    shelf: low-tech
+    fetcher: mirror-site
+    description: Appropriate-tech articles archive.
+    mirror:
+      seed_url: https://www.lowtechmagazine.com/
+      allowed_hosts: ["www.lowtechmagazine.com", "lowtechmagazine.com"]
+      depth: 3
+    options: []
+    defaults: {}
+    size_mb_by_variant:
+      default: 500
+
+  - id: tldp
+    title: Linux Documentation Project (mirror)
+    shelf: computing
+    fetcher: mirror-site
+    description: Classic HOWTOs, Guides. Grab the full site.
+    mirror:
+      seed_url: https://tldp.org/
+      allowed_hosts: ["tldp.org"]
+      depth: 5
+    options: []
+    defaults: {}
+    size_mb_by_variant:
+      default: 500
+
+  - id: meshtastic-docs
+    title: Meshtastic documentation (mirror)
+    shelf: comms
+    fetcher: mirror-site
+    description: Full docs.meshtastic.org for the mesh module.
+    mirror:
+      seed_url: https://meshtastic.org/docs/
+      allowed_hosts: ["meshtastic.org"]
+      depth: 4
+    options: []
+    defaults: {}
+    size_mb_by_variant:
+      default: 50
+
+  # ── Survival PDFs (public domain) ───────────────────────────────────
+  - id: fm-21-76-survival
+    title: FM 21-76 Army Survival
+    shelf: medical
+    fetcher: archive-pdf
+    description: Canonical US Army survival manual.
+    archive:
+      url: https://archive.org/download/MilitaryManual-Fm21-76USArmySurvivalManual/fm21-76%20%28US%20Army%20Survival%20Manual%29.pdf
+    options: []
+    defaults: {}
+    size_mb_by_variant:
+      default: 6
+
+  - id: fm-3-05-70-survival
+    title: FM 3-05.70 SERE (Survival, Evasion, Resistance, Escape)
+    shelf: medical
+    fetcher: archive-pdf
+    description: Army SERE manual.
+    archive:
+      url: https://archive.org/download/milmanual-fm-3-05.70-survival/fm-3-05.70-survival.pdf
+    options: []
+    defaults: {}
+    size_mb_by_variant:
+      default: 4
+
+  # ── Maps ────────────────────────────────────────────────────────────
+  - id: osm-regional
+    title: OpenStreetMap regional packs (OsmAnd format)
+    shelf: maps
+    fetcher: osmand-region
+    description: Vector maps for offline nav. Pick regions.
+    options:
+      - name: regions
+        prompt: "Which regions? (comma-separated OsmAnd region codes)"
+        type: string
+        placeholder: "us-northcarolina,us-georgia"
+    defaults:
+      regions: []
+    # Size varies; typically 300-800 MB per US state

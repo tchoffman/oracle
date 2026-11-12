@@ -24,23 +24,44 @@ bin/oracle serve  # open http://localhost:8080 in a browser
 - **Browse**: `bin/oracle serve` then open `http://localhost:8080`, pick a ZIM, use its own search
 - **Status**: `bin/oracle status` — what's installed, what's indexed, what's broken
 
-## Adding content
+## Customizing the install
 
-### Add a ZIM
+### Interactive
 
-1. Append to `corpus/sources.yaml` under `zims:`
-2. `make corpus` — downloads new, skips existing
-3. `make serve` again — new ZIM is picked up automatically
+```bash
+make setup
+```
 
-### Add a PDF (survival manual, repair guide, etc.)
+Walks you through profile pick → per-shelf choices → writes `config/install.local.yaml` (gitignored). Then run `make corpus && make index`.
 
-Two options:
+### By hand
 
-**Option A — automated (public domain or direct URL):**
-1. Append to `corpus/sources.yaml` under `pdfs:`
-2. `make corpus && make index`
+Edit `config/install.local.yaml`. Example:
 
-**Option B — manual (gated downloads or your own files):**
+```yaml
+preset: default
+overrides:
+  wikipedia:
+    variant: nopic           # upgrade default's "simple" to full nopic
+  khan-academy:
+    variant: core            # add Khan Academy core subjects
+  stackexchange:
+    sites: ["outdoors", "cooking", "homebrew", "electronics", "ham"]
+  gutenberg:
+    top_n: 500
+  wikivoyage: null           # remove something the preset included
+```
+
+Run `make plan` to preview the plan without fetching.
+
+### Catalog of everything available
+
+`config/catalog.yaml` — the full menu. Each entry documents its options (variants, counts, etc.). `corpus/compendium.yaml` is a higher-level curated list organized by shelf for human reading.
+
+### Dropping in gated or personal PDFs
+
+Some things (Hesperian medical set, scanned manuals you own) require manual placement:
+
 1. Drop the PDF into `build/corpus/pdfs/`
 2. `make index`
 
