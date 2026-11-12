@@ -4,97 +4,373 @@
 # so users can pick what to include: `make corpus SHELF=medical,repair,agriculture`
 # (shelf filtering is planned; today everything in sources.yaml is downloaded).
 #
-# Only entries with a verifiable license + open URL are listed here. Items
-# marked `manual: true` must be hand-dropped due to registration gates.
+# Entry fields:
+#   name:           stable short name
+#   type:           zim | pdf | ref-only (ref-only = note for the operator, no auto-download)
+#   url:            direct URL (for pdf) or specific ZIM URL
+#   kiwix_project:  project directory under https://download.kiwix.org/zim/<project>/
+#   kiwix_prefix:   filename prefix; latest dated file wins
+#   license:        licence info
+#   size:           real size (not estimate; verified via HEAD)
+#   manual:         true if the operator must drop the file in by hand
+#   notes:          anything useful
+#
+# When shelf filtering lands, each item may be tagged with multiple shelves.
 
 shelves:
+
+  reference:
+    # Wikipedia, three variants. Pick based on disk.
+    - name: wikipedia-en-mini
+      type: zim
+      kiwix_project: wikipedia
+      kiwix_prefix: wikipedia_en_all_mini_
+      license: CC-BY-SA 4.0
+      size: 14 GB
+      notes: Full English Wikipedia summaries. Fastest to download, lowest fidelity.
+    - name: wikipedia-en-nopic
+      type: zim
+      kiwix_project: wikipedia
+      kiwix_prefix: wikipedia_en_all_nopic_
+      license: CC-BY-SA 4.0
+      size: 53 GB
+      notes: Full English Wikipedia, text only — no images or video. The sweet spot.
+    - name: wikipedia-en-maxi
+      type: zim
+      kiwix_project: wikipedia
+      kiwix_prefix: wikipedia_en_all_maxi_
+      license: CC-BY-SA 4.0
+      size: 127 GB
+      notes: Full English Wikipedia with images + videos. Cage-class only.
+
+    - name: wiktionary-en
+      type: zim
+      kiwix_project: wiktionary
+      kiwix_prefix: wiktionary_en_all_nopic_
+      license: CC-BY-SA 4.0
+      size: ~1 GB
+      notes: Full English dictionary — definitions, etymologies, translations.
+
+    - name: wikibooks-en
+      type: zim
+      kiwix_project: wikibooks
+      kiwix_prefix: wikibooks_en_all_nopic_
+      license: CC-BY-SA 4.0
+      size: ~5 GB
+      notes: Textbooks and manuals — math, chemistry, programming, languages, cooking.
+
+    - name: wikisource-en
+      type: zim
+      kiwix_project: wikisource
+      kiwix_prefix: wikisource_en_all_nopic_
+      license: Public domain + CC-BY-SA 4.0
+      size: ~10 GB
+      notes: Primary-source texts — legal documents, old treatises, historical records.
+
+    - name: wikiquote-en
+      type: zim
+      kiwix_project: wikiquote
+      kiwix_prefix: wikiquote_en_all_nopic_
+      license: CC-BY-SA 4.0
+      size: ~1 GB
+      notes: Curated quotes from literature, speeches, films. For morale.
+
+    - name: wikiversity-en
+      type: zim
+      kiwix_project: wikiversity
+      kiwix_prefix: wikiversity_en_all_nopic_
+      license: CC-BY-SA 4.0
+      size: ~1 GB
+      notes: Free course materials across disciplines.
+
+    - name: project-gutenberg-top
+      type: ref-only
+      url: https://www.gutenberg.org/
+      notes: |
+        Public-domain books (70k+). Direct ZIM in Kiwix catalog is "gutenberg_en".
+        Suggest a scripts/fetch-gutenberg.sh that pulls the top N by downloads.
+
+  education:
+    - name: khan-academy
+      type: zim
+      kiwix_project: other
+      kiwix_prefix: khanacademy_en_all_
+      license: CC-BY-NC-SA
+      size: ~90 GB
+      notes: Khan Academy courses — K–12 math, science, humanities. Huge.
+    - name: khan-academy-core
+      type: zim
+      kiwix_project: other
+      kiwix_prefix: khanacademy_en_core_
+      size: ~5 GB
+      notes: Smaller Khan Academy subset — essentials.
+    - name: ted-talks
+      type: zim
+      kiwix_project: ted
+      kiwix_prefix: ted_en_all_
+      size: ~70 GB
+      notes: TED talk transcripts + metadata. Replace with transcripts-only if available.
+    - name: mit-ocw
+      type: ref-only
+      url: https://ocw.mit.edu/
+      notes: |
+        MIT OpenCourseWare. Not shipped as a ZIM — build with mwoffliner, or just
+        scrape individual courses of interest with wget --mirror.
+    - name: oer-commons
+      type: ref-only
+      url: https://oercommons.org/
+      notes: Open Educational Resources — pick courses relevant to your household.
 
   medical:
     - name: where-there-is-no-doctor
       type: pdf
       url: https://store.hesperian.org/prod/Where_There_Is_No_Doctor.html
       license: Hesperian — free non-commercial
+      size: 30 MB
       manual: true
+      notes: Canonical off-grid medical reference.
     - name: where-there-is-no-dentist
       type: pdf
       url: https://store.hesperian.org/prod/Where_There_Is_No_Dentist.html
+      size: 15 MB
+      manual: true
+    - name: where-women-have-no-doctor
+      type: pdf
+      url: https://store.hesperian.org/prod/Where_Women_Have_No_Doctor.html
+      size: 20 MB
+      manual: true
+    - name: helping-children-live-with-hiv
+      type: pdf
+      url: https://store.hesperian.org/prod/Helping_Children_Live_with_HIV.html
       manual: true
     - name: ship-captains-medical-guide
       type: pdf
       url: https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/837166/MGN-480_Ships_Captain_s_Medical_Guide.pdf
       license: UK Open Government
+      size: ~15 MB
+    - name: merck-manual-home
+      type: ref-only
+      url: https://www.merckmanuals.com/home
+      notes: Public merck.com; scrape key chapters with wget.
+    - name: who-essential-medicines
+      type: pdf
+      url: https://www.who.int/publications/i/item/WHO-MHP-HPS-EML-2023.02
+      manual: true
+      notes: WHO Essential Medicines list — what to stock.
 
   food:
-    # Public domain; large collections live at archive.org
     - name: usda-food-preservation
-      type: pdf
-      url: https://nchfp.uga.edu/publications/publications_usda.html
-      manual: true
-      notes: USDA Complete Guide to Home Canning
-    - name: self-sufficient-life
       type: ref-only
-      notes: John Seymour — buy physical; not freely redistributable.
+      url: https://nchfp.uga.edu/publications/publications_usda.html
+      notes: National Center for Home Food Preservation — authoritative canning/drying.
+    - name: encyclopedia-country-living
+      type: ref-only
+      notes: Carla Emery — buy physical; copyrighted.
+    - name: bread-matters
+      type: ref-only
+      notes: Andrew Whitley — sourdough + traditional baking.
+    - name: usda-plants-database
+      type: ref-only
+      url: https://plants.usda.gov/
+    - name: peterson-field-guides
+      type: ref-only
+      notes: Edible wild plants, medicinal plants. Copyrighted; buy physical.
 
   water:
     - name: cdc-safe-water
       type: ref-only
       url: https://www.cdc.gov/healthywater/
-      notes: CDC safe water system — archive key pages manually.
+    - name: who-drinking-water-guidelines
+      type: pdf
+      url: https://www.who.int/publications/i/item/9789240045064
+      manual: true
+      size: ~30 MB
 
   shelter:
-    - name: fema-emergency-preparedness
+    - name: fema-citizen-preparedness
       type: pdf
       url: https://www.fema.gov/sites/default/files/documents/fema_citizen-preparedness-guide.pdf
+    - name: fema-emergency-management-guide
+      type: pdf
+      url: https://www.fema.gov/sites/default/files/documents/fema_emergency-management-guide-business-industry.pdf
+    - name: a-pattern-language
+      type: ref-only
+      notes: Alexander et al. — buy physical. Foundational for designing habitable spaces.
+    - name: lloyd-kahn-shelter
+      type: ref-only
+      notes: Classic owner-built shelter book; buy physical.
 
   energy:
-    - name: off-grid-solar-handbook
+    - name: home-power-anthology
       type: ref-only
-      notes: Richard Perez — Home Power anthology; buy physical.
+      notes: Home Power magazine archives. Mostly PDFs available for purchase.
+    - name: nrel-reference-docs
+      type: ref-only
+      url: https://www.nrel.gov/docs/
+      notes: National Renewable Energy Lab — tons of free PDFs on solar/wind/batteries.
+    - name: battery-university
+      type: ref-only
+      url: https://batteryuniversity.com/
+      notes: Comprehensive battery chemistry reference.
 
   repair:
     - name: ifixit-en
       type: zim
       kiwix_project: ifixit
       kiwix_prefix: ifixit_en_all_
-      notes: Already in sources.yaml — duplicated here so shelf = "repair" includes it.
+      notes: Already in sources.yaml — duplicated here so shelf "repair" includes it.
     - name: haynes-manuals
       type: ref-only
-      notes: Buy per-vehicle; not freely redistributable.
+      notes: Per-vehicle; buy physical or digital subscription.
+    - name: machinerys-handbook
+      type: ref-only
+      notes: Industrial Press; copyrighted. Essential for machining reference.
 
   agriculture:
     - name: usda-plant-fact-sheets
-      type: pdf
+      type: ref-only
       url: https://plants.usda.gov/
-      manual: true
+    - name: ucanr-publications
+      type: ref-only
+      url: https://anrcatalog.ucanr.edu/
+      notes: University of California Agriculture & Natural Resources — free PDFs.
     - name: seed-to-seed
       type: ref-only
-      notes: Suzanne Ashworth — buy physical.
+      notes: Suzanne Ashworth — seed saving reference. Buy physical.
+    - name: fao-field-manuals
+      type: ref-only
+      url: https://www.fao.org/publications
+      notes: UN Food and Agriculture Organization — free PDFs on crops, livestock.
 
   comms:
     - name: arrl-handbook
       type: ref-only
-      notes: ARRL Handbook (buy annually).
-
-  reference:
-    - name: wikipedia-en-nopic
-      type: zim
-      kiwix_project: wikipedia
-      kiwix_prefix: wikipedia_en_all_nopic_
-      size: ~57GB
-      notes: Full English Wikipedia, no images. Only pull on cage-class disk.
-    - name: project-gutenberg-top
+      notes: ARRL Handbook (annual) — ham radio bible. Buy or borrow.
+    - name: arrl-antenna-book
       type: ref-only
-      url: https://www.gutenberg.org/
-      notes: Script to pull top N books; see planned scripts/fetch-gutenberg.sh
+      notes: ARRL Antenna Book — companion. Buy.
+    - name: meshtastic-docs
+      type: ref-only
+      url: https://meshtastic.org/docs/
+      notes: Grab the full docs site with wget --mirror.
+    - name: reticulum-manual
+      type: ref-only
+      url: https://markqvist.github.io/Reticulum/manual/
+    - name: ntia-frequency-allocations
+      type: pdf
+      url: https://www.ntia.gov/sites/default/files/publications/compendium/0324redbookrev.pdf
+      size: ~30 MB
+
+  computing:
+    - name: tldp-linux-docs
+      type: ref-only
+      url: https://tldp.org/
+      notes: Linux Documentation Project — HOWTOs, Guides. Grab with wget --mirror.
+    - name: arch-wiki
+      type: zim
+      kiwix_project: other
+      kiwix_prefix: archlinux_en_all_nopic_
+      size: ~2 GB
+      notes: The Arch Linux wiki — famously the best Linux reference overall.
+    - name: devdocs-offline
+      type: ref-only
+      url: https://devdocs.io/
+      notes: Offline-capable developer documentation PWA. Pin locally.
+    - name: python-docs
+      type: ref-only
+      url: https://docs.python.org/3/download.html
+      notes: Downloadable HTML/PDF archives for every Python release.
+    - name: posix-standard
+      type: ref-only
+      url: https://pubs.opengroup.org/onlinepubs/9699919799/
+      notes: Specs for grep/awk/sed/... survive any Unix descendant.
 
   classics:
     - name: standard-ebooks-corpus
       type: ref-only
       url: https://standardebooks.org/
-      notes: Beautifully-formatted public-domain classics. For morale.
+      notes: |
+        Beautifully formatted public-domain classics. For morale. Download the OPDS
+        catalog and grab everything with a short script.
+    - name: project-gutenberg-top-2000
+      type: ref-only
+      url: https://www.gutenberg.org/browse/scores/top
+      notes: Top 2000 by downloads — ~5 GB total. Consider a scripts/fetch-gutenberg.sh.
+
+  gov-publications:
+    - name: fm-21-76-survival
+      type: pdf
+      url: https://archive.org/download/MilitaryManual-Fm21-76USArmySurvivalManual/fm21-76%20%28US%20Army%20Survival%20Manual%29.pdf
+      license: Public domain (US Army)
+    - name: fm-3-05-70-survival
+      type: pdf
+      url: https://archive.org/download/milmanual-fm-3-05.70-survival/fm-3-05.70-survival.pdf
+    - name: fm-4-25-11-first-aid
+      type: pdf
+      url: https://armypubs.army.mil/ProductMaps/PubForm/Details.aspx?PUB_ID=51774
+      manual: true
+      notes: Army First Aid field manual.
+    - name: usaid-field-operations-guide
+      type: ref-only
+      url: https://www.usaid.gov/humanitarian-assistance/field-operations-guide
+    - name: faa-airman-knowledge-handbook
+      type: pdf
+      url: https://www.faa.gov/sites/faa.gov/files/regulations_policies/handbooks_manuals/aviation/phak/FAA-H-8083-25C.pdf
+      size: ~90 MB
+      notes: FAA Pilot's Handbook of Aeronautical Knowledge — foundational aeronautics.
+
+  low-tech:
+    - name: low-tech-magazine
+      type: ref-only
+      url: https://www.lowtechmagazine.com/
+      notes: Practical appropriate-tech articles. Scrape with wget --mirror.
+    - name: appropedia
+      type: zim
+      kiwix_project: appropedia
+      kiwix_prefix: appropedia_en_all_
+      size: ~500 MB
+      notes: Wiki of DIY sustainability projects.
+
+  maps:
+    - name: osm-tiles-regional
+      type: ref-only
+      url: https://osmand.net/
+      notes: OsmAnd downloadable regional packs — vector maps for your state.
+    - name: usgs-topo
+      type: ref-only
+      url: https://ngmdb.usgs.gov/topoview/
+      notes: 24k/100k quad topographic maps. Download your area by hand.
+    - name: openlandscape-shaded-relief
+      type: ref-only
+      url: https://www.naturalearthdata.com/
+      notes: Vector + raster physical/cultural basemaps, public domain.
+
+  reference-language:
+    - name: oxford-languages-ref
+      type: ref-only
+      notes: Copyrighted. Wiktionary is the open alternative.
+    - name: unesco-public-ed
+      type: ref-only
+      url: https://unesdoc.unesco.org/
+      notes: Free UNESCO publications — language learning, educator guides.
+    - name: duolingo-stories
+      type: ref-only
+      notes: Not easily archived (login-gated).
+
+  vet-animal:
+    - name: merck-veterinary-manual
+      type: ref-only
+      url: https://www.merckvetmanual.com/
+      notes: Canonical veterinary reference. Browse online; archive by hand.
+    - name: fao-animal-production
+      type: ref-only
+      url: https://www.fao.org/publications
+      notes: Livestock husbandry, disease handling.
 
 future_work:
-  - Script `fetch-gutenberg.sh` that pulls top N by downloads.
-  - Script `fetch-appropedia.sh` — Appropedia ZIM.
-  - Full Wikipedia-with-images (100GB+) — cage-tier only.
-  - Shelf filtering in fetch-corpus.sh via `SHELF=...` env var.
+  - Script `scripts/fetch-gutenberg.sh` — pulls top N books by downloads.
+  - Script `scripts/fetch-openstreetmap.sh` — fetches OsmAnd pack for a chosen region.
+  - Script `scripts/fetch-stackexchange.sh` — pulls Stack Exchange dumps (outdoors.stackexchange, gardening, cooking, homebrew, bicycles). Enormously useful technical Q&A, CC-BY-SA licensed.
+  - Script `scripts/mirror-site.sh` — generic wget --mirror with sensible defaults for ref-only sites (Low-Tech Magazine, TLDP, battery university).
+  - Shelf filter: `make corpus SHELF=medical,repair`.
+  - De-duplicate between `sources.yaml` (starter) and `compendium.yaml` (deeper) — move everything to compendium + add a `starter: true` flag.
