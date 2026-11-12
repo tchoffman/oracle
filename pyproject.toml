@@ -1,0 +1,15 @@
+[project]
+name = "oracle"
+version = "0.1.0"
+description = "Offline knowledge oracle for off-grid research"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+    "chromadb>=0.5.0",
+    "ollama>=0.4.0",
+    "pypdf>=5.0.0",
+    "rich>=13.0.0",
+]
+
+[tool.ruff]
+line-length = 100

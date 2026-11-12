@@ -1,0 +1,100 @@
+# Module 2 — Survival Compendium (planned)
+#
+# A deeper curated library beyond sources.yaml's starter set. Organized by shelf
+# so users can pick what to include: `make corpus SHELF=medical,repair,agriculture`
+# (shelf filtering is planned; today everything in sources.yaml is downloaded).
+#
+# Only entries with a verifiable license + open URL are listed here. Items
+# marked `manual: true` must be hand-dropped due to registration gates.
+
+shelves:
+
+  medical:
+    - name: where-there-is-no-doctor
+      type: pdf
+      url: https://store.hesperian.org/prod/Where_There_Is_No_Doctor.html
+      license: Hesperian — free non-commercial
+      manual: true
+    - name: where-there-is-no-dentist
+      type: pdf
+      url: https://store.hesperian.org/prod/Where_There_Is_No_Dentist.html
+      manual: true
+    - name: ship-captains-medical-guide
+      type: pdf
+      url: https://assets.publishing.service.gov.uk/government/uploads/system/uploads/attachment_data/file/837166/MGN-480_Ships_Captain_s_Medical_Guide.pdf
+      license: UK Open Government
+
+  food:
+    # Public domain; large collections live at archive.org
+    - name: usda-food-preservation
+      type: pdf
+      url: https://nchfp.uga.edu/publications/publications_usda.html
+      manual: true
+      notes: USDA Complete Guide to Home Canning
+    - name: self-sufficient-life
+      type: ref-only
+      notes: John Seymour — buy physical; not freely redistributable.
+
+  water:
+    - name: cdc-safe-water
+      type: ref-only
+      url: https://www.cdc.gov/healthywater/
+      notes: CDC safe water system — archive key pages manually.
+
+  shelter:
+    - name: fema-emergency-preparedness
+      type: pdf
+      url: https://www.fema.gov/sites/default/files/documents/fema_citizen-preparedness-guide.pdf
+
+  energy:
+    - name: off-grid-solar-handbook
+      type: ref-only
+      notes: Richard Perez — Home Power anthology; buy physical.
+
+  repair:
+    - name: ifixit-en
+      type: zim
+      kiwix_project: ifixit
+      kiwix_prefix: ifixit_en_all_
+      notes: Already in sources.yaml — duplicated here so shelf = "repair" includes it.
+    - name: haynes-manuals
+      type: ref-only
+      notes: Buy per-vehicle; not freely redistributable.
+
+  agriculture:
+    - name: usda-plant-fact-sheets
+      type: pdf
+      url: https://plants.usda.gov/
+      manual: true
+    - name: seed-to-seed
+      type: ref-only
+      notes: Suzanne Ashworth — buy physical.
+
+  comms:
+    - name: arrl-handbook
+      type: ref-only
+      notes: ARRL Handbook (buy annually).
+
+  reference:
+    - name: wikipedia-en-nopic
+      type: zim
+      kiwix_project: wikipedia
+      kiwix_prefix: wikipedia_en_all_nopic_
+      size: ~57GB
+      notes: Full English Wikipedia, no images. Only pull on cage-class disk.
+    - name: project-gutenberg-top
+      type: ref-only
+      url: https://www.gutenberg.org/
+      notes: Script to pull top N books; see planned scripts/fetch-gutenberg.sh
+
+  classics:
+    - name: standard-ebooks-corpus
+      type: ref-only
+      url: https://standardebooks.org/
+      notes: Beautifully-formatted public-domain classics. For morale.
+
+future_work:
+  - Script `fetch-gutenberg.sh` that pulls top N by downloads.
+  - Script `fetch-appropedia.sh` — Appropedia ZIM.
+  - Full Wikipedia-with-images (100GB+) — cage-tier only.
+  - Shelf filtering in fetch-corpus.sh via `SHELF=...` env var.

@@ -1,0 +1,23 @@
+# The oracle's local build artifacts — never committed, always reproducible.
+build/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Env
+.env
+.env.local

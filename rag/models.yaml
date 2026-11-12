@@ -1,0 +1,15 @@
+# Models pulled by scripts/pull-models.sh. Edit to re-provision.
+# Keys are informational; the list values are the Ollama tags that get pulled.
+
+primary:
+  # 8B Q4 — ~4.9GB, runs on 16GB RAM Mac. Primary synthesis model for RAG.
+  - llama3.1:8b-instruct-q4_K_M
+
+embedding:
+  # Text embeddings for Chroma. ~275MB, 768-dim.
+  - nomic-embed-text
+
+# To upgrade on a bigger machine (32GB+ RAM / dedicated GPU), uncomment:
+# alternates:
+#   - llama3.3:70b-instruct-q4_K_M  # ~40GB
+#   - qwen2.5:32b-instruct-q4_K_M   # ~20GB

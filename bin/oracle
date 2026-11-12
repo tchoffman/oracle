@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# The oracle CLI. Thin dispatcher over the Python RAG modules + kiwix-serve.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+VENV_PY="$REPO_ROOT/build/venv/bin/python"
+
+usage() {
+  cat <<EOF
+oracle — your offline knowledge oracle
+
+Usage:
+  oracle ask "question"      Ask the oracle (RAG over your corpus)
+  oracle serve [--port N]    Serve ZIMs via kiwix-serve (default port 8080)
+  oracle status              Show what's installed / indexed / ready
+  oracle shell               Drop into a REPL with the venv activated
+
+Build the oracle first:
+  make all
+
+See README.md for details.
+EOF
+}
+
+require_venv() {
+  if [[ ! -x "$VENV_PY" ]]; then
+    echo "Error: Python venv not built. Run 'make venv' (or 'make all') first." >&2
+    exit 1
+  fi
+}
+
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  ask)
+    if [[ $# -eq 0 ]]; then
+      echo "Usage: oracle ask \"your question here\"" >&2
+      exit 2
+    fi
+    require_venv
+    cd "$REPO_ROOT"
+    "$VENV_PY" -m rag.query "$@"
+    ;;
+
+  serve)
+    port=8080
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --port) port="$2"; shift 2 ;;
+        *) echo "unknown arg: $1" >&2; exit 2 ;;
+      esac
+    done
+    kiwix="$REPO_ROOT/build/bin/kiwix-serve"
+    if [[ ! -x "$kiwix" ]]; then
+      if command -v kiwix-serve >/dev/null 2>&1; then
+        kiwix="$(command -v kiwix-serve)"
+      else
+        echo "Error: kiwix-serve not installed. Run 'make deps'." >&2
+        exit 1
+      fi
+    fi
+    zim_dir="$REPO_ROOT/build/corpus/zims"
+    zims=("$zim_dir"/*.zim)
+    if [[ ! -e "${zims[0]}" ]]; then
+      echo "No ZIMs under $zim_dir. Run 'make corpus' first." >&2
+      exit 1
+    fi
+    echo "Serving ${#zims[@]} ZIM(s) at http://localhost:$port"
+    exec "$kiwix" --port "$port" "${zims[@]}"
+    ;;
+
+  status)
+    require_venv
+    cd "$REPO_ROOT"
+    "$VENV_PY" -m rag.status
+    ;;
+
+  shell)
+    require_venv
+    cd "$REPO_ROOT"
+    exec "$VENV_PY"
+    ;;
+
+  help|-h|--help|"")
+    usage
+    ;;
+
+  *)
+    echo "unknown command: $cmd" >&2
+    usage
+    exit 2
+    ;;
+esac
