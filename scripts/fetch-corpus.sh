@@ -11,28 +11,40 @@ PDF_DIR="build/corpus/pdfs"
 
 mkdir -p "$ZIM_DIR" "$PDF_DIR"
 
-# Parse sources.yaml using Python (already required by the RAG stack).
-# Emit tab-separated: type\tname\turl\tmanual\toptional
-#   For ZIM entries with kiwix_project/kiwix_prefix, resolve the latest dated file.
-python3 - <<'PY' > /tmp/oracle-sources.tsv
-import urllib.request, re, yaml, sys
+# Parse sources.yaml using Python. Prefer the venv's Python (3.11+) since the
+# system Python on macOS can be 3.9 which lacks some syntax we use.
+PY_BIN="build/venv/bin/python"
+[[ -x "$PY_BIN" ]] || PY_BIN="python3"
 
-def resolve_kiwix_latest(project: str, prefix: str) -> str | None:
-    url = f"https://download.kiwix.org/zim/{project}/"
+# Emit tab-separated: type\tname\turl\tmanual
+#   For ZIM entries with kiwix_project/kiwix_prefix, resolve the latest dated file.
+"$PY_BIN" - <<'PY' > /tmp/oracle-sources.tsv
+import urllib.request, re, sys
+
+try:
+    import yaml  # type: ignore
+except ImportError:
+    # PyYAML not in system Python — fall back to a tiny parser for this script.
+    print("ERROR: PyYAML missing. Run 'make venv' first.", file=sys.stderr)
+    sys.exit(1)
+
+
+def resolve_kiwix_latest(project, prefix):
+    url = "https://download.kiwix.org/zim/" + project + "/"
     try:
         with urllib.request.urlopen(url, timeout=30) as r:
             html = r.read().decode("utf-8", errors="ignore")
     except Exception as e:
-        print(f"  WARN: cannot list {url}: {e}", file=sys.stderr)
+        print("  WARN: cannot list " + url + ": " + str(e), file=sys.stderr)
         return None
-    # Find candidate filenames matching prefix and ending in .zim
-    candidates = re.findall(rf'({re.escape(prefix)}[^"<>\s]+\.zim)', html)
+    candidates = re.findall(r'({}[^"<>\s]+\.zim)'.format(re.escape(prefix)), html)
     if not candidates:
-        print(f"  WARN: no files match prefix '{prefix}' under {url}", file=sys.stderr)
+        print("  WARN: no files match prefix '" + prefix + "' under " + url, file=sys.stderr)
         return None
-    # The zim files include YYYY-MM dates; sort lexicographically picks the latest.
+    # ZIM files include YYYY-MM dates; sort lexicographically picks the latest.
     latest = sorted(set(candidates))[-1]
-    return f"{url}{latest}"
+    return url + latest
+
 
 with open("corpus/sources.yaml") as f:
     data = yaml.safe_load(f) or {}

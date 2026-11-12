@@ -45,29 +45,37 @@ case "$cmd" in
 
   serve)
     port=8080
+    use_app=0
     while [[ $# -gt 0 ]]; do
       case "$1" in
         --port) port="$2"; shift 2 ;;
+        --app)  use_app=1; shift ;;
         *) echo "unknown arg: $1" >&2; exit 2 ;;
       esac
     done
-    kiwix="$REPO_ROOT/build/bin/kiwix-serve"
-    if [[ ! -x "$kiwix" ]]; then
-      if command -v kiwix-serve >/dev/null 2>&1; then
-        kiwix="$(command -v kiwix-serve)"
-      else
-        echo "Error: kiwix-serve not installed. Run 'make deps'." >&2
-        exit 1
-      fi
-    fi
     zim_dir="$REPO_ROOT/build/corpus/zims"
     zims=("$zim_dir"/*.zim)
     if [[ ! -e "${zims[0]}" ]]; then
       echo "No ZIMs under $zim_dir. Run 'make corpus' first." >&2
       exit 1
     fi
-    echo "Serving ${#zims[@]} ZIM(s) at http://localhost:$port"
-    exec "$kiwix" --port "$port" "${zims[@]}"
+
+    # Preferred: scriptable kiwix-serve binary. Falls back to Kiwix.app (GUI).
+    kiwix="$REPO_ROOT/build/bin/kiwix-serve"
+    if [[ "$use_app" == "0" && -x "$kiwix" ]]; then
+      echo "Serving ${#zims[@]} ZIM(s) at http://localhost:$port"
+      exec "$kiwix" --port "$port" "${zims[@]}"
+    elif [[ "$use_app" == "0" ]] && command -v kiwix-serve >/dev/null 2>&1; then
+      echo "Serving ${#zims[@]} ZIM(s) at http://localhost:$port"
+      exec kiwix-serve --port "$port" "${zims[@]}"
+    elif [[ -d /Applications/Kiwix.app ]]; then
+      echo "kiwix-serve binary not available — opening Kiwix.app with your ZIMs."
+      echo "To get the scriptable headless server, see docs/runbook.md."
+      open -a /Applications/Kiwix.app "${zims[@]}"
+    else
+      echo "Error: no kiwix-serve binary AND no Kiwix.app installed. Run 'make deps'." >&2
+      exit 1
+    fi
     ;;
 
   status)

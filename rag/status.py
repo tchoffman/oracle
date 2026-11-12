@@ -60,11 +60,13 @@ def main() -> int:
 
     local_kiwix = REPO_ROOT / "build" / "bin" / "kiwix-serve"
     if local_kiwix.exists():
-        table.add_row("kiwix-serve binary", f"[green]installed[/green] ({local_kiwix})")
+        table.add_row("kiwix-serve", f"[green]headless binary[/green] ({local_kiwix})")
     elif have("kiwix-serve"):
-        table.add_row("kiwix-serve binary", "[green]installed[/green] (on PATH)")
+        table.add_row("kiwix-serve", "[green]headless binary[/green] (on PATH)")
+    elif Path("/Applications/Kiwix.app").exists():
+        table.add_row("kiwix-serve", "[yellow]GUI only[/yellow] (Kiwix.app — oracle serve will launch it)")
     else:
-        table.add_row("kiwix-serve binary", "[red]missing[/red]")
+        table.add_row("kiwix-serve", "[red]missing[/red]")
 
     models = ollama_models(cfg["ollama_host"])
     if models:

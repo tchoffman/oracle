@@ -40,53 +40,72 @@ if ! curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
 fi
 
 # ---- kiwix-serve ----
-if [[ -x "$BIN_DIR/kiwix-serve" ]]; then
-  echo "  [ok] kiwix-serve already installed at $BIN_DIR/kiwix-serve"
-elif command -v kiwix-serve >/dev/null 2>&1; then
-  echo "  [ok] kiwix-serve on PATH ($(command -v kiwix-serve))"
-else
-  echo "  [+] fetching kiwix-tools prebuilt binary"
-
+# We try two paths in order:
+#   1. Headless kiwix-serve binary — scriptable, ideal.
+#   2. Kiwix.app GUI (Homebrew cask) — fallback; `oracle serve` opens it with your ZIMs.
+#
+# The kiwix.org CDN is sometimes very slow. If the binary download times out, the
+# cask still installs the GUI app and the oracle degrades gracefully.
+install_kiwix_binary() {
   case "$OS-$ARCH" in
     Darwin-arm64)  platform="macos-arm64" ;;
     Darwin-x86_64) platform="macos-x86_64" ;;
     Linux-aarch64) platform="linux-aarch64" ;;
     Linux-x86_64)  platform="linux-x86_64" ;;
     *)
-      echo "Error: no prebuilt kiwix-tools for $OS/$ARCH. Build from source: https://github.com/kiwix/kiwix-tools" >&2
-      exit 1
+      echo "    (no prebuilt kiwix-tools for $OS/$ARCH)"
+      return 1
       ;;
   esac
 
-  # Find the latest release tarball for this platform.
-  latest_url="$(curl -sL https://download.kiwix.org/release/kiwix-tools/ \
+  latest_url="$(curl -sL --max-time 30 https://download.kiwix.org/release/kiwix-tools/ \
     | grep -oE "kiwix-tools_${platform}-[0-9][^\"]*\.tar\.gz" \
     | sort -V | tail -1)"
   if [[ -z "$latest_url" ]]; then
-    echo "Error: could not find kiwix-tools release for $platform" >&2
-    exit 1
+    echo "    (could not list kiwix-tools releases)"
+    return 1
   fi
   full_url="https://download.kiwix.org/release/kiwix-tools/$latest_url"
   echo "      → $full_url"
 
   tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"' EXIT
-  # kiwix.org can be flaky — retry aggressively and allow resume.
-  curl -L --fail --retry 10 --retry-delay 5 --retry-all-errors \
-       --continue-at - -o "$tmpdir/kt.tar.gz" "$full_url"
-  tar -xzf "$tmpdir/kt.tar.gz" -C "$tmpdir"
-
-  # The archive contains a directory like kiwix-tools_macos-arm64-3.8.2/ with binaries.
-  src_bin="$(find "$tmpdir" -maxdepth 3 -type f -name kiwix-serve -perm +111 2>/dev/null | head -1)"
-  if [[ -z "$src_bin" ]]; then
-    src_bin="$(find "$tmpdir" -maxdepth 3 -type f -name kiwix-serve | head -1)"
+  if ! curl -L --fail --retry 5 --retry-delay 5 --retry-all-errors --max-time 600 \
+            --continue-at - -o "$tmpdir/kt.tar.gz" "$full_url"; then
+    rm -rf "$tmpdir"
+    return 1
   fi
+  tar -xzf "$tmpdir/kt.tar.gz" -C "$tmpdir" || { rm -rf "$tmpdir"; return 1; }
+
+  src_bin="$(find "$tmpdir" -maxdepth 3 -type f -name kiwix-serve | head -1)"
   if [[ -z "$src_bin" ]]; then
-    echo "Error: kiwix-serve not found inside archive" >&2
-    exit 1
+    rm -rf "$tmpdir"
+    return 1
   fi
   install -m 0755 "$src_bin" "$BIN_DIR/kiwix-serve"
-  echo "  [ok] installed kiwix-serve → $BIN_DIR/kiwix-serve"
+  rm -rf "$tmpdir"
+  return 0
+}
+
+if [[ -x "$BIN_DIR/kiwix-serve" ]]; then
+  echo "  [ok] kiwix-serve already installed at $BIN_DIR/kiwix-serve"
+elif command -v kiwix-serve >/dev/null 2>&1; then
+  echo "  [ok] kiwix-serve on PATH ($(command -v kiwix-serve))"
+else
+  echo "  [+] fetching kiwix-tools prebuilt binary (may be slow — kiwix.org CDN)"
+  if install_kiwix_binary; then
+    echo "  [ok] installed kiwix-serve → $BIN_DIR/kiwix-serve"
+  else
+    echo "  [!] headless kiwix-serve unavailable — falling back to Kiwix.app GUI"
+    if [[ "$OS" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
+      if [[ ! -d /Applications/Kiwix.app ]]; then
+        brew install --cask kiwix || echo "  [!] cask install failed; manual install needed"
+      else
+        echo "  [ok] Kiwix.app already installed"
+      fi
+    else
+      echo "  [!] install kiwix-serve manually: https://github.com/kiwix/kiwix-tools"
+    fi
+  fi
 fi
 
 echo "==> Deps OK"
