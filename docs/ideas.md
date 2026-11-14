@@ -293,6 +293,84 @@ does the enforcement. This is how real towns have handled this forever
 (the bulletin board at the general store). Build the formal system only
 after watching the simple version in production.
 
+## Marketplace freshness + reliability
+
+The single hardest problem in a distributed marketplace: **stale listings
+dominate and the market dies**. Three sources of staleness and a fix each.
+
+### 1. Short default TTL + explicit confirmation signal
+
+- `expires_at` tag on every listing (default 14 days).
+- Confirmation event (kind 30403) referencing the parent listing's d-tag;
+  one-click on any client; tick-box on the paper refresh form at the host.
+- Clients hide expired listings by default; toggle to see all.
+- Re-posting with the same d-tag refreshes (NIP-99 replaceable semantics).
+- Low-tech path: every paper-form submission includes "any open listings
+  still active?" — the host batch-scans refresh ticks.
+
+### 2. Reliability as a byproduct of real behavior
+
+Three measurable sub-scores, computed **per-pergamon** from observed
+events (no central ranking):
+
+| Score | Measures | How |
+|---|---|---|
+| Freshness | How current your data is | Median age of your listings' last confirmation |
+| Completion | Whether listings convert | Ratio of listings to signed trade receipts within 30 days |
+| Responsiveness | Whether you answer | Median time to first DM reply (opt-in signed receipts) |
+
+Composite is a weighted blend; each pergamon may weight differently.
+Reliability flows from behavior, can't be posted into existence.
+
+### 3. "Looking for" is a first-class post
+
+Symmetric to classifieds. Same TTL, same confirmation model.
+
+The match-maker is a background loop on each pergamon that cross-
+references active "looking for" to active "offering" and notifies both
+sides. Natural pressure on staleness: a seller with a stale listing
+gets a DM from a buyer looking for exactly their thing — must confirm
+or disappear.
+
+### 4. Inventory budget: soft cap on concurrent listings
+
+Default: 10 active listings per identity. The 11th prompts
+"close one or override." Not enforced — it's a norm. UI makes "post
+everything" uncomfortable.
+
+### 5. Trade receipt closes the loop
+
+(Issue #2.) A seller with 50 listings and 0 receipts in 60 days has a
+composite reliability score near zero.
+
+### Schema additions (classifieds, delta)
+
+```
+kind 30402  classifed (offering OR looking-for; t tag)
+  ["expires_at", "<unix_timestamp>"]
+  ["t", "looking-for" | "offering"]
+  ["qty", amount, unit]
+  ["radius_mi", N]
+
+kind 30403  confirmation ("still active"), references d-tag
+kind 30404  inventory delta ("5 lb sold; 15 remain")
+kind 30405  trade receipt (both signatures)   — see issue #2
+```
+
+### Honest tradeoffs
+
+- **Short TTL punishes casual sellers.** Mitigate with a per-listing
+  override: "set TTL to 60 days for low-maintenance posts."
+- **Reliability scores freeze out newcomers.** Boost via identity
+  system — "introduced by [vouched peer]" signal gives new users a
+  starting floor.
+- **No central authority for disputes.** Pergamon surfaces the
+  conflict; social/elder/local-council handles resolution. The
+  pergamon is not a court.
+- **The simplest case still works.** Two people who trust each other
+  just DM: "apples still?" "yes." The scoring infrastructure is for
+  scaling past that.
+
 ## Open market (eBay-for-food)
 
 - **Classifieds first** (via Nostr) — "I have / I need" posts with geo.
