@@ -20,6 +20,11 @@
 
   <main>
     <form id="askForm">
+      <select id="mode" aria-label="mode">
+        <option value="ask">Ask</option>
+        <option value="plan">Plan</option>
+        <option value="search">Search</option>
+      </select>
       <input
         id="q"
         name="q"
@@ -28,7 +33,7 @@
         autocomplete="off"
         autofocus
       />
-      <button type="submit">Ask</button>
+      <button type="submit">Go</button>
     </form>
 
     <section id="answer" class="hidden">
@@ -71,35 +76,48 @@
     const sourcesHeader = document.getElementById("sourcesHeader");
     let eventSource = null;
 
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const q = input.value.trim();
-      if (!q) return;
+    const modeSel = document.getElementById("mode");
 
-      // Reset UI
-      answerBody.textContent = "";
-      sources.innerHTML = "";
-      sourcesHeader.classList.add("hidden");
-      answer.classList.remove("hidden");
+    function linkify(li, text) {
+      li.textContent = text;
+      const match = text.match(/\((http:\/\/[^)]+)\)/);
+      if (match) {
+        const a = document.createElement("a");
+        a.href = match[1];
+        a.textContent = "↗";
+        a.target = "_blank";
+        a.rel = "noopener";
+        a.style.marginLeft = "0.5em";
+        li.appendChild(a);
+      }
+    }
 
+    async function doSearch(q) {
+      const r = await fetch("/search?q=" + encodeURIComponent(q));
+      const data = await r.json();
+      if (!data.hits || data.hits.length === 0) {
+        answerBody.textContent = "No hits — run `make index` or `make zim-index` first.";
+        return;
+      }
+      sourcesHeader.classList.remove("hidden");
+      data.hits.forEach((h, i) => {
+        const li = document.createElement("li");
+        linkify(li, `[${i + 1}] ${h.label}`);
+        sources.appendChild(li);
+      });
+      answerBody.textContent = data.hits
+        .map((h, i) => `[${i + 1}] ${h.preview}${h.preview.length >= 600 ? " …" : ""}`)
+        .join("\n\n");
+    }
+
+    function doStream(mode, q) {
       if (eventSource) eventSource.close();
-      eventSource = new EventSource("/ask?q=" + encodeURIComponent(q));
+      eventSource = new EventSource("/" + mode + "?q=" + encodeURIComponent(q));
 
       eventSource.addEventListener("source", (ev) => {
         sourcesHeader.classList.remove("hidden");
         const li = document.createElement("li");
-        li.textContent = ev.data;
-        // Make kiwix URLs clickable
-        const match = ev.data.match(/\((http:\/\/[^)]+)\)/);
-        if (match) {
-          const a = document.createElement("a");
-          a.href = match[1];
-          a.textContent = "↗";
-          a.target = "_blank";
-          a.rel = "noopener";
-          a.style.marginLeft = "0.5em";
-          li.appendChild(a);
-        }
+        linkify(li, ev.data);
         sources.appendChild(li);
       });
 
@@ -118,6 +136,32 @@
           eventSource = null;
         }
       };
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+
+      answerBody.textContent = "";
+      sources.innerHTML = "";
+      sourcesHeader.classList.add("hidden");
+      answer.classList.remove("hidden");
+
+      const mode = modeSel.value;
+      if (mode === "search") {
+        doSearch(q);
+      } else {
+        doStream(mode, q);
+      }
+    });
+
+    modeSel.addEventListener("change", () => {
+      input.placeholder = {
+        ask: "Ask the library…",
+        plan: "What's the goal?",
+        search: "Search for…",
+      }[modeSel.value];
     });
   </script>
 </body>

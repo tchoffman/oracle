@@ -22,6 +22,7 @@ from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
 
 from rag.config import REPO_ROOT, load_config
+from rag.plan import PLAN_SYSTEM_PROMPT
 from rag.query import SYSTEM_PROMPT, _format_source, build_context, retrieve
 
 TEMPLATES_DIR = REPO_ROOT / "rag" / "templates"
@@ -86,41 +87,33 @@ def status():
     return _status()
 
 
-@app.get("/ask")
-async def ask(q: str):
-    """Server-Sent Events stream of a RAG answer.
-
-    Event types:
-      source  — a citation (sent once per retrieved chunk, before tokens)
-      token   — one streamed LLM token
-      done    — terminal event
-    """
+def _stream_rag(q: str, system: str, user_prefix: str):
+    """Shared SSE generator for ask / plan. `user_prefix` labels the user slot
+    (QUESTION or GOAL) so the LLM reads the prompt correctly."""
     cfg = load_config()
     hits = retrieve(cfg, q)
 
     async def event_gen():
-        # Emit sources first so the client can render citations while tokens stream.
         if hits:
             for i, h in enumerate(hits, 1):
                 label = _format_source(h["meta"])
                 yield {"event": "source", "data": f"[{i}] {label}"}
             context, _ = build_context(hits, cfg["max_context_chars"])
-            user_prompt = f"CONTEXT:\n{context}\n\nQUESTION: {q}"
+            user_prompt = f"CONTEXT:\n{context}\n\n{user_prefix}: {q}"
         else:
             yield {"event": "source", "data": "(no corpus — answering from general knowledge)"}
-            user_prompt = f"QUESTION: {q}"
+            user_prompt = f"{user_prefix}: {q}"
 
         client_ollama = ollama.Client(host=cfg["ollama_host"])
         stream = client_ollama.chat(
             model=cfg["llm_model"],
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system},
                 {"role": "user", "content": user_prompt},
             ],
             stream=True,
             options={"temperature": cfg["temperature"], "num_ctx": cfg["num_ctx"]},
         )
-        # ollama's stream is a sync generator — yield to the event loop between tokens.
         for chunk in stream:
             piece = chunk["message"]["content"]
             if piece:
@@ -130,3 +123,32 @@ async def ask(q: str):
         yield {"event": "done", "data": ""}
 
     return EventSourceResponse(event_gen())
+
+
+@app.get("/ask")
+async def ask(q: str):
+    return _stream_rag(q, SYSTEM_PROMPT, "QUESTION")
+
+
+@app.get("/plan")
+async def plan(q: str):
+    return _stream_rag(q, PLAN_SYSTEM_PROMPT, "GOAL")
+
+
+@app.get("/search")
+def search_endpoint(q: str, k: int = 6):
+    """Raw semantic hits — no LLM. Returns JSON for the UI."""
+    cfg = load_config()
+    cfg_k = dict(cfg)
+    cfg_k["retrieve_k"] = k
+    hits = retrieve(cfg_k, q)
+    return {
+        "hits": [
+            {
+                "label": _format_source(h["meta"]),
+                "preview": h["text"].strip()[:600],
+                "dist": h.get("dist"),
+            }
+            for h in hits
+        ]
+    }
