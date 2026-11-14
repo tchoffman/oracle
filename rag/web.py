@@ -21,8 +21,22 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
 
+from fastapi import HTTPException
+
 from rag.config import REPO_ROOT, load_config
-from rag.identity import list_identities
+from rag.identity import (
+    get_active,
+    list_identities,
+    load_identity,
+    load_nsec,
+    set_active,
+)
+from rag.nostr import (
+    _load_relays_from_config,
+    _publish_many,
+    build_event,
+    sign_event,
+)
 from rag.plan import PLAN_SYSTEM_PROMPT
 from rag.query import SYSTEM_PROMPT, _format_source, build_context, retrieve
 
@@ -134,6 +148,84 @@ async def ask(q: str):
 @app.get("/plan")
 async def plan(q: str):
     return _stream_rag(q, PLAN_SYSTEM_PROMPT, "GOAL")
+
+
+@app.get("/identity", response_class=HTMLResponse)
+def identity_page(request: Request):
+    """Simple HTML page for viewing + switching + editing identity."""
+    idents = list_identities()
+    active = get_active()
+    return templates.TemplateResponse(
+        request,
+        "identity.html",
+        {
+            "identities": [i.meta() for i in idents],
+            "active": active.meta() if active else None,
+            "status": _status(),
+            "kiwix_available": False,   # unused on this page
+            "zims": [],
+        },
+    )
+
+
+@app.get("/api/identity/active")
+def api_identity_active():
+    active = get_active()
+    if not active:
+        return {"active": None}
+    return {"active": active.meta()}
+
+
+@app.post("/api/identity/use")
+async def api_identity_use(request: Request):
+    body = await request.json()
+    name = body.get("name")
+    if not name:
+        raise HTTPException(400, "name required")
+    try:
+        set_active(name)
+    except FileNotFoundError:
+        raise HTTPException(404, f"no identity: {name}")
+    ident = load_identity(name)
+    return {"active": ident.meta()}
+
+
+@app.post("/api/identity/profile")
+async def api_identity_profile(request: Request):
+    """Publish a NIP-01 kind-0 metadata event for the active identity.
+
+    Body (any subset): {display_name, about, picture, nip05, website, lud16}
+    Clients subscribe to kind-0 to render profiles; this is how you update yours.
+    """
+    body = await request.json()
+    ident = get_active()
+    if not ident:
+        raise HTTPException(400, "no active identity")
+
+    allowed_keys = {"display_name", "name", "about", "picture", "nip05", "website", "lud16", "banner"}
+    metadata = {k: v for k, v in body.items() if k in allowed_keys and v}
+    if not metadata:
+        raise HTTPException(400, "no valid profile fields in request")
+
+    # nip05 default from the identity, if not supplied.
+    if ident.nip05 and "nip05" not in metadata:
+        metadata["nip05"] = ident.nip05
+    if ident.display_name and "display_name" not in metadata and "name" not in metadata:
+        metadata["display_name"] = ident.display_name
+
+    import json as _json
+    event = sign_event(
+        build_event(kind=0, content=_json.dumps(metadata, separators=(",", ":")),
+                    pubkey_hex=ident.hex_pub),
+        load_nsec(ident.name),
+    )
+    relays = _load_relays_from_config()
+    results = await _publish_many(event, relays)
+    return {
+        "event_id": event.id,
+        "published_to": {u: {"ok": ok, "message": msg} for u, (ok, msg) in results.items()},
+        "metadata": metadata,
+    }
 
 
 @app.get("/.well-known/nostr.json")

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pergamon · Identity</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Pergamon</h1>
+    <nav class="status">
+      <a href="/">Ask</a>
+      <span>·</span>
+      <a href="/identity" class="muted">Identity</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h2>Active identity</h2>
+      {% if active %}
+        <div id="active" class="active-card">
+          <div><strong>{{ active.name }}</strong>{% if active.display_name %} — {{ active.display_name }}{% endif %}</div>
+          <div class="muted mono">{{ active.npub }}</div>
+          {% if active.nip05 %}<div class="muted">nip05: {{ active.nip05 }}</div>{% endif %}
+          <div class="muted">created: {{ active.created }}</div>
+        </div>
+      {% else %}
+        <p class="warn">No active identity. Create one with
+          <code>pergamon identity create &lt;name&gt;</code>.</p>
+      {% endif %}
+    </section>
+
+    {% if identities|length > 1 %}
+    <section>
+      <h2>Switch identity</h2>
+      <form id="switchForm">
+        <select id="switchName">
+          {% for i in identities %}
+          <option value="{{ i.name }}" {% if active and i.name == active.name %}selected{% endif %}>{{ i.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit">Use</button>
+      </form>
+    </section>
+    {% endif %}
+
+    {% if active %}
+    <section>
+      <h2>Publish profile (kind 0)</h2>
+      <p class="muted">Updates how other Nostr clients render you. Published to all configured relays.</p>
+      <form id="profileForm">
+        <div class="row">
+          <label for="display_name">Display name</label>
+          <input id="display_name" value="{{ active.display_name or '' }}" />
+        </div>
+        <div class="row">
+          <label for="about">About</label>
+          <textarea id="about" rows="3"></textarea>
+        </div>
+        <div class="row">
+          <label for="picture">Picture URL</label>
+          <input id="picture" type="url" />
+        </div>
+        <div class="row">
+          <label for="nip05">NIP-05</label>
+          <input id="nip05" value="{{ active.nip05 or '' }}" />
+        </div>
+        <div class="row">
+          <label for="website">Website</label>
+          <input id="website" type="url" />
+        </div>
+        <button type="submit">Publish profile</button>
+      </form>
+      <div id="pubResult" class="muted"></div>
+    </section>
+    {% endif %}
+  </main>
+
+  <footer>
+    <span class="muted">Offline library · everything runs locally.</span>
+  </footer>
+
+  <script>
+    const switchForm = document.getElementById("switchForm");
+    if (switchForm) {
+      switchForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("switchName").value;
+        const r = await fetch("/api/identity/use", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name}),
+        });
+        if (r.ok) location.reload();
+        else alert("Switch failed: " + (await r.text()));
+      });
+    }
+
+    const profileForm = document.getElementById("profileForm");
+    const pubResult = document.getElementById("pubResult");
+    if (profileForm) {
+      profileForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        pubResult.textContent = "publishing…";
+        const payload = {};
+        for (const id of ["display_name", "about", "picture", "nip05", "website"]) {
+          const v = document.getElementById(id).value.trim();
+          if (v) payload[id] = v;
+        }
+        const r = await fetch("/api/identity/profile", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+        });
+        const body = await r.json();
+        if (r.ok) {
+          const results = body.published_to || {};
+          const parts = Object.entries(results).map(([u, v]) =>
+            `${v.ok ? "✓" : "✗"} ${u}${v.message ? " — " + v.message : ""}`
+          );
+          pubResult.textContent = `event ${body.event_id.slice(0,12)}…  ` + parts.join("  ");
+        } else {
+          pubResult.textContent = "error: " + (body.detail || r.statusText);
+        }
+      });
+    }
+  </script>
+</body>
+</html>

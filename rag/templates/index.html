@@ -9,13 +9,15 @@
 <body>
   <header>
     <h1>Pergamon</h1>
-    <div class="status">
+    <nav class="status">
       <span>{{ status.chunks }} chunks</span>
       <span>·</span>
       <span>{{ status.zims }} ZIM{% if status.zims != 1 %}s{% endif %}</span>
       <span>·</span>
       <span class="muted">{{ status.model }}</span>
-    </div>
+      <span>·</span>
+      <a href="/identity">Identity</a>
+    </nav>
   </header>
 
   <main>

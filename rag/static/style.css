@@ -205,3 +205,41 @@ footer {
   font-size: 0.85rem;
   border-top: 1px solid var(--border);
 }
+
+/* Identity page */
+
+.active-card {
+  padding: 1rem 1.25rem;
+  background: var(--accent-soft);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; word-break: break-all; }
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.row label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+textarea {
+  padding: 0.5rem;
+  font: inherit;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  resize: vertical;
+}
+
+nav.status a { color: var(--accent); text-decoration: none; }
+nav.status a:hover { text-decoration: underline; }
+
+#pubResult { margin-top: 0.75rem; font-size: 0.9rem; }
