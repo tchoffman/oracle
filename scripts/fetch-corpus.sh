@@ -61,6 +61,9 @@ for item_id, opts in enable.items():
             f"PDF_URL={item['archive']['url']}",
             f"OUTPUT_NAME={item_id}",
         ]
+        fallbacks = item["archive"].get("url_fallbacks") or []
+        if fallbacks:
+            env_pairs.append(f"PDF_URL_FALLBACKS={','.join(fallbacks)}")
     elif fetcher == "gutenberg":
         env_pairs = [f"GUTENBERG_TOP_N={merged_opts.get('top_n', 100)}"]
     elif fetcher == "stackexchange":

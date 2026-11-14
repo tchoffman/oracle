@@ -17,6 +17,7 @@ help:
 	@echo "  make models   — pull LLM + embedding model via ollama"
 	@echo "  make corpus   — download whatever is enabled in config/install*.yaml"
 	@echo "  make index    — chunk + embed corpus PDFs into Chroma"
+	@echo "  make zim-index    — ingest ZIM articles into Chroma (use ZIM_LIMIT=N to cap)"
 	@echo "  make status     — print what's installed / downloaded / indexed"
 	@echo "  make serve      — launch kiwix-serve (ZIMs at http://localhost:8080)"
 	@echo "  make test       — run unit tests (config logic, no network)"
@@ -51,6 +52,9 @@ corpus:
 
 index: venv corpus
 	@scripts/build-index.sh
+
+zim-index: venv
+	@scripts/build-zim-index.sh
 
 status:
 	@bin/pergamon status

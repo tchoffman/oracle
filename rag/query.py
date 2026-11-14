@@ -35,12 +35,27 @@ def retrieve(cfg: dict, question: str) -> list[dict]:
     return [{"text": d, "meta": m, "dist": dist} for d, m, dist in zip(docs, metas, dists)]
 
 
+def _format_source(meta: dict, kiwix_port: int = 8080) -> str:
+    """Turn a chunk's metadata into a human-readable citation.
+
+    ZIM-sourced chunks get a browse URL into kiwix-serve so the user can jump
+    to the full article. PDF chunks fall back to source#chunk.
+    """
+    source = meta.get("source", "?")
+    if "zim_path" in meta:
+        title = meta.get("title", meta["zim_path"])
+        zim_stem = source.rsplit(".", 1)[0]  # strip .zim
+        url = f"http://localhost:{kiwix_port}/viewer#{zim_stem}/{meta['zim_path']}"
+        return f"{source} — {title}  ({url})"
+    return f"{source}#chunk{meta.get('chunk_index', '?')}"
+
+
 def build_context(hits: list[dict], cap: int) -> tuple[str, list[str]]:
     sources: list[str] = []
     parts: list[str] = []
     used = 0
     for i, h in enumerate(hits, 1):
-        label = f"[{i}] {h['meta'].get('source', '?')}#chunk{h['meta'].get('chunk_index', '?')}"
+        label = f"[{i}] {_format_source(h['meta'])}"
         block = f"=== {label} ===\n{h['text'].strip()}\n"
         if used + len(block) > cap and parts:
             break

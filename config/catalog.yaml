@@ -370,6 +370,10 @@ items:
     description: Canonical US Army survival manual.
     archive:
       url: https://archive.org/download/MilitaryManual-Fm21-76USArmySurvivalManual/fm21-76%20%28US%20Army%20Survival%20Manual%29.pdf
+      url_fallbacks:
+        # archive.org has been 503'ing. Try alternates in order.
+        - https://info.publicintelligence.net/USArmy-FM21-76-SurvivalManual.pdf
+        - https://www.survivalebooks.com/pdf/US%20Army%20Survival%20Manual%20FM%2021-76.pdf
     options: []
     defaults: {}
     size_mb_by_variant:
@@ -382,6 +386,8 @@ items:
     description: Army SERE manual.
     archive:
       url: https://archive.org/download/milmanual-fm-3-05.70-survival/fm-3-05.70-survival.pdf
+      url_fallbacks:
+        - https://info.publicintelligence.net/USArmySurvivalFM3-05-70.pdf
     options: []
     defaults: {}
     size_mb_by_variant:
