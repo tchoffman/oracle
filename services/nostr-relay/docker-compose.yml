@@ -1,0 +1,19 @@
+# nostr-rs-relay — a single-node Nostr relay.
+#
+# Nostr is the distributed protocol that underpins pergamon's cross-machine
+# features: social posts, direct messages, the classifieds marketplace,
+# weather-sharing — all published as signed events that relays store and
+# forward. Each pergamon runs a relay; peers (friends, neighbors, other
+# pergamons on your mesh) subscribe to your relay and you subscribe to theirs.
+
+services:
+  nostr-relay:
+    image: scsibug/nostr-rs-relay:latest
+    container_name: pergamon-nostr-relay
+    restart: unless-stopped
+    user: "100:100"
+    ports:
+      - "8091:8080"
+    volumes:
+      - ../../build/services/nostr-relay/data:/usr/src/app/db
+      - ./config.toml:/usr/src/app/config.toml:ro

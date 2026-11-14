@@ -1,0 +1,18 @@
+# Calibre-Web — web UI for a Calibre ebook library.
+# Point it at ~/Calibre Library (or wherever your calibre .db lives) on first run.
+
+services:
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: pergamon-calibre-web
+    restart: unless-stopped
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - DOCKER_MODS=linuxserver/mods:universal-calibre  # adds Calibre binaries
+    ports:
+      - "8083:8083"
+    volumes:
+      - ../../build/services/calibre-web/config:/config
+      - ../../build/services/calibre-web/books:/books   # drop or mount your library here

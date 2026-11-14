@@ -1,0 +1,33 @@
+# nostr-rs-relay config. Minimal — tune per your setup.
+# Full reference: https://github.com/scsibug/nostr-rs-relay/blob/master/config.toml
+
+[info]
+relay_url = "ws://localhost:8091/"
+name = "pergamon-relay"
+description = "A pergamon's local Nostr relay."
+# contact = "mailto:you@example.com"
+
+[database]
+# Lives in the mounted volume.
+data_directory = "/usr/src/app/db"
+
+[network]
+port = 8080
+address = "0.0.0.0"
+
+[limits]
+# Keep these modest — a LAN relay doesn't need global-scale throughput.
+messages_per_sec = 10
+subscriptions_per_min = 60
+max_event_bytes = 131072     # 128 KB
+max_ws_message_bytes = 262144
+max_ws_frame_bytes = 262144
+broadcast_buffer = 16384
+event_persist_buffer = 4096
+
+[authorization]
+# Comment in to restrict posting to known pubkeys. Empty = open relay.
+# pubkey_whitelist = ["npub1..."]
+
+[verified_users]
+mode = "disabled"

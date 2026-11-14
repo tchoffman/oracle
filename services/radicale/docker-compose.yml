@@ -1,0 +1,21 @@
+# Radicale — CalDAV + CardDAV server for the household.
+# Data lives in build/services/radicale (gitignored).
+#
+# Point phones/clients at: http://<pergamon-ip>:5232/<user>/
+# User setup: edit ../../build/services/radicale/users (htpasswd format) or
+# disable auth entirely in config/config.
+
+services:
+  radicale:
+    image: tomsquest/docker-radicale:latest
+    container_name: pergamon-radicale
+    restart: unless-stopped
+    ports:
+      - "5232:5232"
+    volumes:
+      - ../../build/services/radicale/data:/data
+      - ../../build/services/radicale/config:/config
+    healthcheck:
+      test: curl -f http://127.0.0.1:5232/ || exit 1
+      interval: 30s
+      timeout: 5s

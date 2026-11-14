@@ -1,36 +1,49 @@
-# Module 3 — In-home services
+# Services
 
-**Status:** planning. See [../docs/roadmap.md](../docs/roadmap.md).
+LAN-only self-hosted services that run alongside the core pergamon.
 
-Treat the pergamon machine as a house services host: calendar, photos, notes, media, home automation. Each service is self-contained; enable only what you want.
+**Status:** skeleton. Compose files + READMEs are in place for four
+services. The `pergamon services` CLI dispatcher, install-config
+integration, and setup-TUI wiring are **not yet implemented** — for now,
+start services by hand:
 
-## Planned layout
-
-```
-services/
-├── docker-compose.yml       # top-level composer (enable with env flags)
-├── calendar/                # Radicale (CalDAV + CardDAV)
-├── notes/                   # Trilium or SilverBullet, syncing with existing Obsidian vault
-├── photos/                  # Immich — self-hosted photo library
-├── media/                   # Jellyfin
-├── books/                   # Kavita or Calibre-Web — serves the survival compendium
-├── home-automation/         # Home Assistant
-├── dns/                     # Blocky — ad-blocking + local DNS
-└── monitoring/              # Grafana + node_exporter for solar/battery/disk
+```bash
+cd services/radicale && docker compose up -d
+cd services/calibre-web && docker compose up -d
+cd services/vaultwarden && VW_ADMIN_TOKEN="$(openssl rand -base64 48)" docker compose up -d
+cd services/nostr-relay && docker compose up -d
 ```
 
-## Selection principles
+## Available services
 
-- **LAN-only by default.** Nothing exposed to the public internet unless the user asks.
-- **Local-first.** No cloud dependencies; services must survive weeks offline.
-- **Low idle footprint.** A quiet Mac mini must still run them all without fans spinning up.
-- **Backup-friendly.** Volume layout makes it easy to snapshot the whole services state.
+| id | title | port | purpose |
+|---|---|---|---|
+| radicale | Calendar + Contacts | 5232 | CalDAV/CardDAV, syncs to phones over LAN |
+| calibre-web | E-reader library | 8083 | Serves ebooks to Kindle/phones, Send-to-Kindle |
+| vaultwarden | Password vault | 8089 | Bitwarden-compatible, LAN-only |
+| nostr-relay | Nostr relay | 8091 | Backbone for distributed social/DM/marketplace |
 
-## Idea: RAG over your own data
+Each has its own `docker-compose.yml` + `README.md` with setup specifics.
 
-The pergamon's RAG index can ingest from these services so you can ask:
-- "what was that kayak trip we took in 2024?" → pulls from photos + calendar
-- "what did I decide about the greenhouse last spring?" → pulls from notes
-- "which of my tools has an iFixit guide?" → cross-references inventory notes with iFixit ZIM
+## Dependencies
 
-Opt-in per-service. Lives local; never leaves the house.
+- Docker Engine or Docker Desktop
+- `docker compose` v2 (already included in Docker Desktop)
+
+## Data
+
+Every service writes to `../build/services/<id>/`, which is gitignored.
+Back up this directory to offline media — losing it means losing your
+calendars, passwords, Nostr history, etc.
+
+## What's next
+
+Still to wire (tracked in `docs/ideas.md` → Foundations):
+
+- `services/catalog.yaml` already exists — the CLI dispatcher reads this
+- `pergamon services {list,up,down,status,logs}` CLI
+- `rag/install_config.py` loads `services:` from install.local.yaml
+- Setup TUI asks which services to enable
+- Unit tests for the catalog parser
+- Optional: Caddy reverse proxy so services get friendly `.local` hostnames
+  instead of raw ports

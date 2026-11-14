@@ -1,0 +1,44 @@
+# Services catalog — the menu `pergamon services` and the setup TUI pick from.
+#
+# Each entry names a subdirectory under services/ that contains a
+# docker-compose.yml. The dispatcher composes only the services enabled in
+# config/install.local.yaml.
+
+version: 1
+
+services:
+  - id: radicale
+    title: Calendar & Contacts (Radicale)
+    description: Local CalDAV + CardDAV server. Sync to phones over LAN.
+    service_dir: radicale
+    url: http://localhost:5232
+    data_dir: build/services/radicale
+    size_hint: ~50 MB
+    notes: Basic HTTP auth via a .htpasswd file; see service README to set it up.
+
+  - id: calibre-web
+    title: E-reader library (Calibre-Web)
+    description: Serves ebooks to Kindle / phones / browsers. Handles Send-to-Kindle.
+    service_dir: calibre-web
+    url: http://localhost:8083
+    data_dir: build/services/calibre-web
+    size_hint: ~400 MB
+    notes: Point it at a Calibre-managed library folder on first run.
+
+  - id: vaultwarden
+    title: Password vault (Vaultwarden)
+    description: Bitwarden-compatible self-hosted vault, LAN-only by default.
+    service_dir: vaultwarden
+    url: http://localhost:8089
+    data_dir: build/services/vaultwarden
+    size_hint: ~100 MB
+    notes: Uses standard Bitwarden clients on phones + browsers. Admin at /admin.
+
+  - id: nostr-relay
+    title: Nostr relay (nostr-rs-relay)
+    description: Decentralized messaging backbone — social, DMs, marketplace all build on this.
+    service_dir: nostr-relay
+    url: ws://localhost:8091
+    data_dir: build/services/nostr-relay
+    size_hint: ~50 MB
+    notes: Single-node relay; peer with other pergamons via their WebSocket URL.

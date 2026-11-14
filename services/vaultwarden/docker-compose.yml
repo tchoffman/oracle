@@ -1,0 +1,21 @@
+# Vaultwarden — self-hosted, Bitwarden-compatible password vault.
+# LAN-only. Uses standard Bitwarden clients on phones, browsers, CLI.
+
+services:
+  vaultwarden:
+    image: vaultwarden/server:latest
+    container_name: pergamon-vaultwarden
+    restart: unless-stopped
+    environment:
+      # LAN-only mode. No signups unless admin invites — change if you want
+      # anyone on the LAN to create their own account.
+      - SIGNUPS_ALLOWED=false
+      - DOMAIN=http://localhost:8089
+      # Admin panel at /admin. Generate with: openssl rand -base64 48
+      # Set it in config/install.local.yaml under services.vaultwarden.admin_token
+      # and reference ${VW_ADMIN_TOKEN} here.
+      - ADMIN_TOKEN=${VW_ADMIN_TOKEN:-}
+    ports:
+      - "8089:80"
+    volumes:
+      - ../../build/services/vaultwarden:/data
