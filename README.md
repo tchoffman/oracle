@@ -38,6 +38,17 @@ Skip `make setup` and `make all` uses the **default** preset (~5 GB, fits a 16 G
 
 `make setup` writes `config/install.local.yaml` (gitignored) — you can also edit it by hand. `make plan` shows what would be fetched without downloading. `make all` is idempotent — re-running only does work that's missing. See `make help`.
 
+## Documentation
+
+- **[docs/getting-started.md](docs/getting-started.md)** — step-by-step walkthrough for first-time install. Start here if this is your first time.
+- **[docs/commands.md](docs/commands.md)** — every subcommand and its flags, as a reference.
+- **[docs/identity.md](docs/identity.md)** — Nostr keys, NIP-05, backup + recovery.
+- **[docs/hardware.md](docs/hardware.md)** — dev-box vs cage-machine planning.
+- **[docs/runbook.md](docs/runbook.md)** — how to use Pergamon day-to-day and off-grid.
+- **[docs/quick-reference.md](docs/quick-reference.md)** — printable survival cheatsheet to keep with the machine.
+- **[docs/ideas.md](docs/ideas.md)** — backlog of features not yet built.
+- **[docs/roadmap.md](docs/roadmap.md)** — the three planned modules (comms, services, compendium).
+
 ## What's inside the "app"
 
 | Component       | Purpose                                             | Tool                  |

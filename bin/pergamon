@@ -31,7 +31,8 @@ Build the pergamon first:
   make setup   (optional — choose what to install)
   make all     (or re-run after setup to download selections)
 
-See README.md for details.
+First-time users: see docs/getting-started.md
+Daily reference:   docs/commands.md
 EOF
 }
 
