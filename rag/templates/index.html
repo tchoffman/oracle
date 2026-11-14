@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pergamon</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Pergamon</h1>
+    <div class="status">
+      <span>{{ status.chunks }} chunks</span>
+      <span>·</span>
+      <span>{{ status.zims }} ZIM{% if status.zims != 1 %}s{% endif %}</span>
+      <span>·</span>
+      <span class="muted">{{ status.model }}</span>
+    </div>
+  </header>
+
+  <main>
+    <form id="askForm">
+      <input
+        id="q"
+        name="q"
+        type="text"
+        placeholder="Ask the library…"
+        autocomplete="off"
+        autofocus
+      />
+      <button type="submit">Ask</button>
+    </form>
+
+    <section id="answer" class="hidden">
+      <h2>Answer</h2>
+      <div id="answerBody"></div>
+      <h3 id="sourcesHeader" class="hidden">Sources</h3>
+      <ul id="sources"></ul>
+    </section>
+
+    {% if zims %}
+    <section class="browse">
+      <h2>Browse the library</h2>
+      <p class="muted">Full-text search within each ZIM — handy when you want to skim articles directly.</p>
+      <ul class="zims">
+        {% for z in zims %}
+        <li>
+          <a href="http://localhost:8080/viewer#{{ z.stem }}" target="_blank" rel="noopener">
+            {{ z.stem }} <span class="muted">({{ z.size_mb }} MB)</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if not kiwix_available %}
+      <p class="warn">kiwix-serve isn't running. Start it with <code>make serve</code> in another terminal.</p>
+      {% endif %}
+    </section>
+    {% endif %}
+  </main>
+
+  <footer>
+    <span class="muted">Offline library · everything runs locally.</span>
+  </footer>
+
+  <script>
+    const form = document.getElementById("askForm");
+    const input = document.getElementById("q");
+    const answer = document.getElementById("answer");
+    const answerBody = document.getElementById("answerBody");
+    const sources = document.getElementById("sources");
+    const sourcesHeader = document.getElementById("sourcesHeader");
+    let eventSource = null;
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = input.value.trim();
+      if (!q) return;
+
+      // Reset UI
+      answerBody.textContent = "";
+      sources.innerHTML = "";
+      sourcesHeader.classList.add("hidden");
+      answer.classList.remove("hidden");
+
+      if (eventSource) eventSource.close();
+      eventSource = new EventSource("/ask?q=" + encodeURIComponent(q));
+
+      eventSource.addEventListener("source", (ev) => {
+        sourcesHeader.classList.remove("hidden");
+        const li = document.createElement("li");
+        li.textContent = ev.data;
+        // Make kiwix URLs clickable
+        const match = ev.data.match(/\((http:\/\/[^)]+)\)/);
+        if (match) {
+          const a = document.createElement("a");
+          a.href = match[1];
+          a.textContent = "↗";
+          a.target = "_blank";
+          a.rel = "noopener";
+          a.style.marginLeft = "0.5em";
+          li.appendChild(a);
+        }
+        sources.appendChild(li);
+      });
+
+      eventSource.addEventListener("token", (ev) => {
+        answerBody.textContent += ev.data;
+      });
+
+      eventSource.addEventListener("done", () => {
+        eventSource.close();
+        eventSource = null;
+      });
+
+      eventSource.onerror = () => {
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+      };
+    });
+  </script>
+</body>
+</html>

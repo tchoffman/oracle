@@ -20,6 +20,7 @@ help:
 	@echo "  make zim-index    — ingest ZIM articles into Chroma (use ZIM_LIMIT=N to cap)"
 	@echo "  make status     — print what's installed / downloaded / indexed"
 	@echo "  make serve      — launch kiwix-serve (ZIMs at http://localhost:8080)"
+	@echo "  make web        — launch the web UI (http://localhost:8090)"
 	@echo "  make test       — run unit tests (config logic, no network)"
 	@echo "  make check-urls — HEAD-request every URL in the plan (catches dead links)"
 	@echo "  make smoke-test — run end-to-end validation"
@@ -76,6 +77,9 @@ smoke-test:
 
 serve:
 	@bin/pergamon serve
+
+web: venv
+	@bin/pergamon web
 
 ask:
 	@echo "Usage: bin/pergamon ask \"your question\""

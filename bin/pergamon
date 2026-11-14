@@ -13,6 +13,7 @@ Usage:
   pergamon setup               Interactively pick what to install
   pergamon ask "question"      Ask the library (RAG over your corpus)
   pergamon serve [--port N]    Serve ZIMs via kiwix-serve (default port 8080)
+  pergamon web [--port N]      Launch the web UI (default port 8090)
   pergamon status              Show what's installed / indexed / ready
   pergamon shell               Drop into a REPL with the venv activated
 
@@ -84,6 +85,22 @@ case "$cmd" in
       echo "Error: no kiwix-serve binary AND no Kiwix.app installed. Run 'make deps'." >&2
       exit 1
     fi
+    ;;
+
+  web)
+    port=8090
+    host=0.0.0.0
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --port) port="$2"; shift 2 ;;
+        --host) host="$2"; shift 2 ;;
+        *) echo "unknown arg: $1" >&2; exit 2 ;;
+      esac
+    done
+    require_venv
+    cd "$REPO_ROOT"
+    echo "Pergamon web UI → http://localhost:$port"
+    exec "$VENV_PY" -m uvicorn rag.web:app --host "$host" --port "$port"
     ;;
 
   status)
