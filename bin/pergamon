@@ -21,6 +21,7 @@ Usage:
   pergamon ledger ...          Record-keeping: list / show / add / rm / query
   pergamon services ...        LAN services: list / up / down / restart / status / logs
   pergamon identity ...        Nostr keys: list / create / use / show / export / import
+  pergamon nostr ...           Sign + publish events (post, relays)
   pergamon status              Show what's installed / indexed / ready
   pergamon shell               Drop into a REPL with the venv activated
 
@@ -160,6 +161,12 @@ case "$cmd" in
     require_venv
     cd "$REPO_ROOT"
     exec "$VENV_PY" -m rag.identity "$@"
+    ;;
+
+  nostr)
+    require_venv
+    cd "$REPO_ROOT"
+    exec "$VENV_PY" -m rag.nostr "$@"
     ;;
 
   status)
