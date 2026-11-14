@@ -1,0 +1,31 @@
+name: check-urls
+
+on:
+  schedule:
+    # Mondays at 12:00 UTC — catches catalog rot (Kiwix date prefixes, moved
+    # archive.org items, dead mirror seeds) once a week.
+    - cron: "0 12 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  check:
+    name: HEAD every catalog URL
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install minimum deps for check-urls
+        run: |
+          uv venv build/venv
+          uv pip install --python build/venv/bin/python pyyaml
+
+      - name: Check every URL (all variants)
+        run: scripts/check-urls.sh --all
