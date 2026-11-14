@@ -23,6 +23,7 @@ Usage:
   pergamon identity ...        Nostr keys: list / create / use / show / export / import
   pergamon nostr ...           Sign + publish events (post, relays)
   pergamon classified ...      Classifieds (post, list, search) over Nostr
+  pergamon delegation ...      NIP-26: authorize another key to post on your behalf
   pergamon status              Show what's installed / indexed / ready
   pergamon shell               Drop into a REPL with the venv activated
 
@@ -174,6 +175,12 @@ case "$cmd" in
     require_venv
     cd "$REPO_ROOT"
     exec "$VENV_PY" -m rag.classifieds "$@"
+    ;;
+
+  delegation)
+    require_venv
+    cd "$REPO_ROOT"
+    exec "$VENV_PY" -m rag.delegation "$@"
     ;;
 
   status)
