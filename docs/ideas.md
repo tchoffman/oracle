@@ -108,6 +108,129 @@ services, compendium).
   RAG. "What did BBC World Service say about X yesterday?"
 - **Podcast archive** — download + ingest transcripts.
 
+## Non-Pergamon on-ramps
+
+Most community members won't run their own Pergamon. The network has to
+have low-tech entry points or it's a toy for a technical minority.
+
+Ranked by cost-to-adopt (lowest first):
+
+- **★ Physical bulletin board at each host site.** Printed from Nostr feed
+  daily/weekly; paper slips pinned under headings; old ones culled.
+  Zero-tech read access for anyone who walks in.
+- **★ Paper forms with QR routing.** Standardized printable forms
+  (classified / help-wanted / lost-found / event / DM / trade-receipt).
+  QR header encodes `form_type/version/host_site_id`. Users drop them in
+  a literal mailbox at the host site; admin scans in batches; OCR +
+  manual review posts them to Nostr.
+- **Member card (QR npub).** Each member gets a printed card with their
+  Nostr public key as a QR. Host scans card + form together; posts are
+  signed on the user's behalf via a delegation key. Audit trail shows
+  "Alice via Host-Pergamon-NC" so trust is attributable.
+- **SMS bridge.** Host runs a cellular modem or shares a phone with a
+  dedicated number. SMS → Nostr post. Replies auto-delivered. Serves
+  flip-phone users and people with cell but no smartphone.
+- **Walk-in terminal.** The pergamon machine itself has keyboard + display
+  in a library-style corner at the host. Signed posting via member-card
+  scan. For people who want to type but don't own a device.
+- **Shortwave / ham bridge.** Scheduled HF receive at the host; hand- or
+  Whisper-transcribed notices → Nostr. Return direction via WSPR / FT8
+  for very-low-bandwidth broadcast.
+- **Guest PWA.** NFC tag at the host opens the web UI on any passing
+  phone; session-signs with a temporary key that expires. For travelers.
+
+### Making paper forms actually work
+
+The failure mode is admin burnout. Design accordingly:
+
+- Standardized OCR-friendly layouts — tick boxes, pre-printed fields,
+  high contrast. Think IRS forms, not freeform.
+- QR header routes automatically to the right Nostr kind.
+- One item per form — no multi-item slips.
+- Member-card QR slot at the top for signed posting on the user's behalf.
+- Pre-dated **trade receipts** that both parties sign create the audit
+  trail everything else piggybacks on.
+- Host maintains a physical scanned-forms folder; participants can audit
+  whether their post made it through.
+- The host is a notary: trusted to scan accurately, trusted not to
+  fabricate, trusted not to redistribute DMs. The host's reputation is
+  on the line.
+
+### Standard form library (starter set)
+
+Printable PDFs the host keeps in a tray:
+
+1. Classified: buy / sell / trade / want
+2. Help wanted (labor exchange, work parties)
+3. Lost & found
+4. Event notice (potluck, swap meet, work bee, service)
+5. Direct message to another member
+6. Trade receipt (both signatures)
+7. Local news / notice
+8. New-member application (name + contact + member-card QR)
+
+## Monetary base: junk silver
+
+Barter is awkward without a common denominator. Use pre-1965 US 90% Ag
+coinage ("junk silver") as the reference. Rationale:
+
+- Widely held by the target community already
+- Universal recognition
+- Fine divisibility (dime ≈ 0.0715 oz Ag)
+- Trusted provenance (US Mint)
+- Historical precedent as inflation hedge
+- Testable with ring / specific-gravity / magnet / date checks
+
+### Standardize on
+
+- **Unit of account: troy ounces of silver (`oz_ag`).** Matches commodity
+  spot markets; easy conversion.
+- **Display: silver dimes alongside `oz_ag`.** 1 dime ≈ 0.0715 oz Ag.
+  Small trades read naturally either way.
+- **Secondary units for context:**
+  - USD-equivalent via a cached spot price (any Pergamon with internet
+    broadcasts; offline peers cache the last seen rate)
+  - Labor-hours — "a day's work" as an alternate barter standard
+  - kWh — useful for energy-dense goods in off-grid contexts
+
+### Schema touchpoints
+
+Classified ad fields:
+
+- `price_oz_ag` (optional)
+- `price_usd` (optional, cached rate)
+- `accepts`: array of {`silver`, `cash`, `barter`, `labor`, `kwh`}
+- `will_accept_offers` (bool)
+
+User profile:
+
+- `preferred_tender` — "silver + barter" / "USD only" / etc. Browsing
+  respects this.
+
+Trade receipt:
+
+- Both sides record what was actually exchanged. Useful for dispute
+  resolution and for historical rate reconstruction.
+
+Spot-price updater:
+
+- Scheduled job on any Pergamon with internet
+- Publishes a canonical event (e.g. `kind: 30301`) with the day's spot
+- Peers cache locally
+
+### Testing authenticity (worth including in `docs/`)
+
+- **Ring test** — 90% Ag coins ring higher/brighter than clad
+- **Specific gravity** — 90% Ag = 10.34 g/cm³
+- **Magnet** — silver is non-magnetic; some counterfeits aren't
+- **Date check** — pre-1965 US dimes/quarters; pre-1964 halves (post-1964
+  halves are 40% Ag through 1970); Mercury dimes always 90%; Roosevelt
+  1946–1964 90%
+- **Weight** — a dime is 2.5 g, quarter 6.25 g, half 12.5 g
+
+Add a one-pager `docs/silver-reference.md` with these + conversion
+tables + typical spot-to-dime conversions at various price points.
+
 ## Identity & community reputation
 
 ### ★ Identity (foundational — build before/with classifieds)
