@@ -22,6 +22,7 @@ from fastapi.templating import Jinja2Templates
 from sse_starlette.sse import EventSourceResponse
 
 from rag.config import REPO_ROOT, load_config
+from rag.identity import list_identities
 from rag.plan import PLAN_SYSTEM_PROMPT
 from rag.query import SYSTEM_PROMPT, _format_source, build_context, retrieve
 
@@ -133,6 +134,28 @@ async def ask(q: str):
 @app.get("/plan")
 async def plan(q: str):
     return _stream_rag(q, PLAN_SYSTEM_PROMPT, "GOAL")
+
+
+@app.get("/.well-known/nostr.json")
+def nip05(name: str | None = None):
+    """NIP-05 verifier.
+
+    Nostr clients hit this endpoint when a user puts e.g. `trenton@pergamon.local`
+    in their profile. We return the mapping from local name → hex pubkey so the
+    client can verify ownership.
+
+    Spec: https://github.com/nostr-protocol/nips/blob/master/05.md
+    """
+    names: dict[str, str] = {}
+    for ident in list_identities():
+        # Local-part of their NIP-05 if set, else their identity name.
+        local = ident.nip05_name
+        names[local] = ident.hex_pub
+    if name:
+        if name not in names:
+            return {"names": {}}
+        return {"names": {name: names[name]}}
+    return {"names": names}
 
 
 @app.get("/search")

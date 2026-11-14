@@ -13,5 +13,9 @@ uvicorn>=0.30.0
 jinja2>=3.1.0
 sse-starlette>=2.0.0
 
+# Nostr identity (keys + NIP-05 verification)
+coincurve>=19.0.0
+bech32>=1.2.0
+
 # Optional — loaded only by comms module
 meshtastic>=2.5.0 ; python_version >= "3.10"

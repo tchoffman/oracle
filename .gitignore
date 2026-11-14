@@ -1,7 +1,9 @@
-# The oracle's local build artifacts — never committed, always reproducible.
+# The pergamon's local build artifacts — never committed, always reproducible.
+# Includes: build/corpus, build/chroma, build/models, build/services,
+# build/venv, build/bin, and build/identity (private keys!).
 build/
 
-# Per-install user customization (output of `oracle setup`).
+# Per-install user customization (output of `pergamon setup`).
 config/install.local.yaml
 
 # Python

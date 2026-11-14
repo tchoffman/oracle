@@ -20,6 +20,7 @@ Usage:
   pergamon mesh listen         Listen for Meshtastic DMs over USB
   pergamon ledger ...          Record-keeping: list / show / add / rm / query
   pergamon services ...        LAN services: list / up / down / restart / status / logs
+  pergamon identity ...        Nostr keys: list / create / use / show / export / import
   pergamon status              Show what's installed / indexed / ready
   pergamon shell               Drop into a REPL with the venv activated
 
@@ -153,6 +154,12 @@ case "$cmd" in
   services)
     cd "$REPO_ROOT"
     exec scripts/services.sh "$@"
+    ;;
+
+  identity)
+    require_venv
+    cd "$REPO_ROOT"
+    exec "$VENV_PY" -m rag.identity "$@"
     ;;
 
   status)
