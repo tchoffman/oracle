@@ -163,6 +163,73 @@ def test_load_effective_applies_overrides(tmp_path, monkeypatch):
     assert "wikivoyage" not in eff["enable"]
 
 
+# ─────────────────────────────── models ─────────────────────────────────
+
+def test_model_catalog_has_both_roles():
+    from rag.install_config import load_model_catalog
+    cat = load_model_catalog()
+    assert "primary" in cat and "embedding" in cat
+    assert len(cat["primary"]) >= 2, "catalog should offer multiple primary models"
+    assert len(cat["embedding"]) >= 2, "catalog should offer multiple embedding models"
+
+
+def test_model_catalog_entries_have_ollama_tag():
+    from rag.install_config import load_model_catalog
+    cat = load_model_catalog()
+    for role in ("primary", "embedding"):
+        for mid, entry in cat[role].items():
+            assert "ollama_tag" in entry, f"{role}/{mid} missing ollama_tag"
+            assert "size_mb" in entry, f"{role}/{mid} missing size_mb"
+
+
+def test_effective_config_includes_preset_models():
+    eff = load_effective_config()  # whatever the current env has
+    assert "models" in eff
+    # Models should be a dict with at least primary + embedding when a preset
+    # declares them. All current presets declare both.
+    assert "primary" in eff["models"]
+    assert "embedding" in eff["models"]
+
+
+def test_effective_config_applies_model_override(tmp_path, monkeypatch):
+    _redirect_config(monkeypatch, tmp_path)
+    _write(
+        tmp_path / "install.local.yaml",
+        {
+            "preset": "default",
+            "models": {"primary": "qwen2.5-7b-q4"},  # override the default's llama
+        },
+    )
+    eff = load_effective_config()
+    assert eff["models"]["primary"] == "qwen2.5-7b-q4"
+    # Embedding comes from the preset since we didn't override it.
+    assert eff["models"]["embedding"] == "nomic-embed-text"
+
+
+def test_presets_reference_known_models():
+    from rag.install_config import load_model_catalog
+    cat = load_model_catalog()
+    for p in available_presets():
+        data = load_yaml(install_config.PRESETS_DIR / f"{p['file']}.yaml")
+        models = data.get("models") or {}
+        if "primary" in models:
+            assert models["primary"] in cat["primary"], (
+                f"preset {p['file']} references unknown primary model: {models['primary']}"
+            )
+        if "embedding" in models:
+            assert models["embedding"] in cat["embedding"], (
+                f"preset {p['file']} references unknown embedding model: {models['embedding']}"
+            )
+
+
+def test_save_local_config_persists_models(tmp_path, monkeypatch):
+    _redirect_config(monkeypatch, tmp_path)
+    from rag.install_config import save_local_config
+    save_local_config("default", models={"primary": "qwen2.5-14b-q4"})
+    loaded = load_yaml(tmp_path / "install.local.yaml")
+    assert loaded["models"]["primary"] == "qwen2.5-14b-q4"
+
+
 # ─────────────────────────────── sizes ──────────────────────────────────
 
 def test_item_size_mb_by_variant():

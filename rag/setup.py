@@ -15,6 +15,7 @@ import questionary
 from questionary import Choice
 from rich.console import Console
 from rich.panel import Panel
+from rich.rule import Rule
 from rich.table import Table
 
 from rag.install_config import (
@@ -22,6 +23,7 @@ from rag.install_config import (
     item_size_mb,
     load_catalog,
     load_effective_config,
+    load_model_catalog,
     load_yaml,
     save_local_config,
     PRESETS_DIR,
@@ -147,6 +149,56 @@ def _custom_flow(catalog: dict, starting_enable: dict) -> dict:
     return chosen
 
 
+def _prompt_models(current: dict) -> dict:
+    """Ask for primary + embedding model selection.
+
+    `current` is the pre-selected models (preset defaults or existing local).
+    Returns a dict like {"primary": "id", "embedding": "id"}.
+    """
+    model_cat = load_model_catalog()
+    chosen: dict[str, str] = {}
+
+    console.print(Rule("[bold]Models"))
+    console.print(
+        "Pick the primary LLM and the embedding model. Bigger models give better "
+        "answers but need more RAM and run slower. [yellow]Changing the embedding "
+        "model requires reindexing the whole corpus[/yellow] — vectors from one "
+        "model aren't compatible with another."
+    )
+
+    for role in ("primary", "embedding"):
+        role_label = "LLM (synthesis)" if role == "primary" else "Embedding (retrieval)"
+        options = model_cat.get(role, {})
+        if not options:
+            continue
+
+        def _label(m: dict) -> str:
+            size = m.get("size_mb", 0)
+            size_s = f"{size/1024:.1f} GB" if size >= 1024 else f"{size} MB"
+            dim = f", {m['dim']}d" if "dim" in m else ""
+            return f"{m['id']:<22} {size_s:>8}{dim}  — {m.get('notes', '')}"
+
+        default = current.get(role)
+        if default not in options:
+            default = next(iter(options))
+        choice = questionary.select(
+            f"{role_label}:",
+            choices=[Choice(_label(m), value=m_id) for m_id, m in options.items()],
+            default=default,
+        ).ask()
+        if choice:
+            chosen[role] = choice
+
+    # Warn if embedding changed vs current.
+    if current.get("embedding") and chosen.get("embedding") and chosen["embedding"] != current["embedding"]:
+        console.print(
+            "[yellow]Note:[/yellow] you've changed the embedding model. "
+            "Run [cyan]rm -rf build/chroma && make index[/cyan] (and "
+            "[cyan]make zim-index[/cyan] if you had ZIMs indexed) afterwards."
+        )
+    return chosen
+
+
 def diff_from_preset(preset_enable: dict, chosen_enable: dict) -> dict:
     """Compute the minimal `overrides:` block that transforms preset_enable
     into chosen_enable. Removed items are mapped to None so the merge logic
@@ -201,20 +253,33 @@ def main() -> int:
         chosen_enable = base.get("enable") or {}
         base_preset_choice = profile
 
+    # Models — always offered, even for a plain preset pick.
+    preset_models = base.get("models") or {}
+    starting_models = {**preset_models, **(current.get("models") or {})}
+    chosen_models = _prompt_models(starting_models)
+
     # Show summary and confirm.
     console.print(_summary_table(catalog, chosen_enable))
+    if chosen_models:
+        console.print(
+            f"[dim]models:[/dim] primary=[cyan]{chosen_models.get('primary','?')}[/cyan] "
+            f"embedding=[cyan]{chosen_models.get('embedding','?')}[/cyan]"
+        )
     confirmed = questionary.confirm("Save this configuration?", default=True).ask()
     if not confirmed:
         console.print("[yellow]Aborted — no changes written.[/yellow]")
         return 1
 
-    # If we customized, write overrides. Otherwise just point at the preset.
+    # Only persist model picks if they differ from the preset's defaults.
+    model_overrides = {k: v for k, v in chosen_models.items() if preset_models.get(k) != v}
+
+    # If we customized, write enable-overrides. Otherwise just point at the preset.
     if profile == "__custom__":
         preset_enable = load_yaml(PRESETS_DIR / f"{base_preset_choice}.yaml").get("enable") or {}
         overrides = diff_from_preset(preset_enable, chosen_enable)
-        save_local_config(base_preset_choice, overrides=overrides)
+        save_local_config(base_preset_choice, overrides=overrides, models=model_overrides)
     else:
-        save_local_config(profile)
+        save_local_config(profile, models=model_overrides)
 
     console.print(f"[green]Saved to[/green] config/install.local.yaml")
     console.print("\nNext steps:")

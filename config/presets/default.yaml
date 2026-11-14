@@ -4,6 +4,10 @@
 name: default
 description: "Broad starter pergamon. ~5 GB. Fits a 16 GB Mac comfortably."
 
+models:
+  primary: llama3.1-8b-q4
+  embedding: nomic-embed-text
+
 enable:
   wikipedia:
     variant: simple

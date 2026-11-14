@@ -4,6 +4,10 @@
 name: comprehensive
 description: "Cage-class deep library. ~80 GB. Needs the disk for it."
 
+models:
+  primary: qwen2.5-14b-q4         # bigger model for a bigger corpus
+  embedding: mxbai-embed-large    # higher-quality embeddings
+
 enable:
   wikipedia:
     variant: nopic             # ~53 GB

@@ -4,6 +4,10 @@
 name: minimal
 description: "Smallest viable pergamon. ~1 GB total."
 
+models:
+  primary: phi-3.5-mini          # fastest, smallest
+  embedding: nomic-embed-text
+
 enable:
   wikipedia:
     variant: simple

@@ -1,0 +1,29 @@
+# Food inventory — example ledger instance.
+#
+# Add entries with:
+#   pergamon ledger add food item="brown rice" qty=10 unit=lb location=pantry expires=2027-06-01
+# Inspect:
+#   pergamon ledger show food
+#   pergamon ledger query food location=freezer
+#   pergamon ledger query food item~rice
+
+name: food
+title: Food Inventory
+
+fields:
+  - name: item
+    type: text
+    required: true
+  - name: qty
+    type: number
+  - name: unit
+    type: text
+  - name: location
+    type: enum
+    options: [pantry, freezer, fridge, cellar, root_cellar, counter, other]
+  - name: barcode
+    type: text
+  - name: expires
+    type: date
+  - name: notes
+    type: text

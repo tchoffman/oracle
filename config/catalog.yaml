@@ -17,6 +17,57 @@
 
 version: 1
 
+# ────────────────────────────────── Models ──────────────────────────────────
+# Which Ollama tags are available to pick as primary (LLM) or embedding model.
+# Install config (install.local.yaml → models:) names one of each by id.
+#
+# Primary model is chosen for speed/quality trade-off; embedding model
+# selection matters more carefully — swapping it requires reindexing the whole
+# corpus (vector dimensions differ).
+
+models:
+  primary:
+    - id: llama3.1-8b-q4
+      ollama_tag: llama3.1:8b-instruct-q4_K_M
+      size_mb: 4900
+      notes: Default. Good balance on a 16 GB Mac.
+    - id: llama3.1-8b-q8
+      ollama_tag: llama3.1:8b-instruct-q8_0
+      size_mb: 8500
+      notes: Higher quality 8B. Comfortable on 24 GB+.
+    - id: qwen2.5-7b-q4
+      ollama_tag: qwen2.5:7b-instruct-q4_K_M
+      size_mb: 4700
+      notes: Strong alternative to llama. Good at reasoning / math.
+    - id: qwen2.5-14b-q4
+      ollama_tag: qwen2.5:14b-instruct-q4_K_M
+      size_mb: 9000
+      notes: Mid-size. Noticeably sharper; needs 24 GB+ RAM.
+    - id: phi-3.5-mini
+      ollama_tag: phi3.5:3.8b-mini-instruct-q4_K_M
+      size_mb: 2300
+      notes: Tiny. For low-resource machines or faster responses.
+    - id: llama3.3-70b-q4
+      ollama_tag: llama3.3:70b-instruct-q4_K_M
+      size_mb: 43000
+      notes: Cage-class. Needs 48 GB+ unified memory. Patient users only.
+  embedding:
+    - id: nomic-embed-text
+      ollama_tag: nomic-embed-text
+      size_mb: 274
+      dim: 768
+      notes: Default. Fast, well-tested, 768-dim.
+    - id: mxbai-embed-large
+      ollama_tag: mxbai-embed-large
+      size_mb: 670
+      dim: 1024
+      notes: Higher quality. 1024-dim — reindex required if you switch.
+    - id: bge-base
+      ollama_tag: bge-base-en-v1.5
+      size_mb: 280
+      dim: 768
+      notes: BGE alternative. 768-dim; strong on technical queries.
+
 items:
 
   # ── Wikipedia family ────────────────────────────────────────────────

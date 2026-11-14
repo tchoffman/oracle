@@ -31,10 +31,20 @@ def load_yaml(path: Path) -> dict:
 
 
 def load_catalog() -> dict:
-    """Return catalog.yaml as dict keyed by item id."""
+    """Return catalog.yaml items keyed by item id."""
     raw = load_yaml(CATALOG_PATH)
     items = {item["id"]: item for item in raw.get("items", [])}
     return items
+
+
+def load_model_catalog() -> dict:
+    """Return {'primary': {id: entry, ...}, 'embedding': {id: entry, ...}}."""
+    raw = load_yaml(CATALOG_PATH)
+    models = raw.get("models") or {}
+    return {
+        role: {m["id"]: m for m in (models.get(role) or [])}
+        for role in ("primary", "embedding")
+    }
 
 
 def _merge_enable(preset_enable: dict, overrides: dict) -> dict:
@@ -52,7 +62,10 @@ def _merge_enable(preset_enable: dict, overrides: dict) -> dict:
 
 
 def load_effective_config() -> dict:
-    """Return the effective install config: {"enable": {item_id: options, ...}}."""
+    """Return the effective install config.
+
+    Shape: {"preset": name, "enable": {item_id: opts, ...}, "models": {primary, embedding}}.
+    """
     install = load_yaml(INSTALL_PATH)
     local = load_yaml(INSTALL_LOCAL_PATH) if INSTALL_LOCAL_PATH.exists() else {}
 
@@ -64,14 +77,25 @@ def load_effective_config() -> dict:
     enable = _merge_enable(enable, install.get("overrides") or {})
     enable = _merge_enable(enable, local.get("overrides") or {})
 
-    return {"preset": preset_name, "enable": enable}
+    # Models: preset defaults, overridden by install.models / local.models (shallow merge).
+    models = dict(preset.get("models") or {})
+    models.update(install.get("models") or {})
+    models.update(local.get("models") or {})
+
+    return {"preset": preset_name, "enable": enable, "models": models}
 
 
-def save_local_config(preset_name: str, overrides: dict | None = None) -> None:
+def save_local_config(
+    preset_name: str,
+    overrides: dict | None = None,
+    models: dict | None = None,
+) -> None:
     """Write config/install.local.yaml."""
-    data = {"preset": preset_name}
+    data: dict = {"preset": preset_name}
     if overrides:
         data["overrides"] = overrides
+    if models:
+        data["models"] = models
     with open(INSTALL_LOCAL_PATH, "w") as f:
         yaml.safe_dump(data, f, sort_keys=False, default_flow_style=False)
 

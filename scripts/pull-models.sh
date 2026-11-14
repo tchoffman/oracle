@@ -1,39 +1,58 @@
 #!/usr/bin/env bash
-# Pull LLM + embedding model via Ollama. Idempotent.
-# Edit MODELS_YAML to change which models get pulled.
+# Pull LLM + embedding model via Ollama. Reads the install config so what gets
+# pulled matches what `pergamon ask` will actually use.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-MODELS_YAML="rag/models.yaml"
 
 if ! command -v ollama >/dev/null 2>&1; then
   echo "Error: ollama not on PATH. Run 'make deps' first." >&2
   exit 1
 fi
 
-# Ensure the server is up
+# Ensure the server is up.
 if ! curl -sf http://localhost:11434/api/tags >/dev/null 2>&1; then
   echo "==> Starting Ollama server"
   (nohup ollama serve >/dev/null 2>&1 &) || true
   sleep 2
 fi
 
-# Extract model tags from models.yaml. Portable (bash 3.2 on macOS lacks mapfile).
+PY=build/venv/bin/python
+if [[ ! -x "$PY" ]]; then
+  PY=python3
+fi
+
+# Resolve which models to pull from the merged install config.
 MODELS=()
 while IFS= read -r m; do
   [[ -n "$m" ]] && MODELS+=("$m")
-done < <(awk '
-  /^[a-zA-Z_]+:$/ { inlist=1; next }
-  inlist && /^[[:space:]]*-[[:space:]]+/ {
-    gsub(/^[[:space:]]*-[[:space:]]+/, "")
-    gsub(/[[:space:]]*#.*$/, "")
-    if ($0 != "") print
-  }
-' "$MODELS_YAML")
+done < <("$PY" - <<'PY'
+import sys
+try:
+    from rag.install_config import load_effective_config, load_model_catalog
+    eff = load_effective_config()
+    cat = load_model_catalog()
+    for role in ("primary", "embedding"):
+        picked = (eff.get("models") or {}).get(role)
+        if picked and picked in cat[role]:
+            print(cat[role][picked]["ollama_tag"])
+        elif picked:
+            print(f"# WARN unknown model id in config: {picked}", file=sys.stderr)
+except Exception as e:
+    # Fall back to the legacy models.yaml if install config fails.
+    print(f"# WARN install config unavailable ({e}); falling back to rag/models.yaml",
+          file=sys.stderr)
+    import yaml
+    with open("rag/models.yaml") as f:
+        data = yaml.safe_load(f) or {}
+    for key in ("primary", "embedding"):
+        for tag in data.get(key) or []:
+            print(tag.split("#")[0].strip())
+PY
+)
 
 if [[ ${#MODELS[@]} -eq 0 ]]; then
-  echo "Error: no models found in $MODELS_YAML" >&2
+  echo "Error: no models resolved from install config." >&2
   exit 1
 fi
 
