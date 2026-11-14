@@ -230,6 +230,45 @@ def test_save_local_config_persists_models(tmp_path, monkeypatch):
     assert loaded["models"]["primary"] == "qwen2.5-14b-q4"
 
 
+# ─────────────────────────────── services ──────────────────────────────
+
+def test_services_catalog_loads():
+    from rag.install_config import load_services_catalog
+    cat = load_services_catalog()
+    # All four scaffolded services should be present.
+    assert set(cat.keys()) >= {"radicale", "calibre-web", "vaultwarden", "nostr-relay"}
+    for sid, entry in cat.items():
+        assert "service_dir" in entry, f"{sid} missing service_dir"
+        assert "title" in entry, f"{sid} missing title"
+
+
+def test_services_catalog_dirs_exist():
+    """Every catalog entry's service_dir should have a docker-compose.yml."""
+    from rag.install_config import load_services_catalog, REPO_ROOT
+    cat = load_services_catalog()
+    for sid, entry in cat.items():
+        compose = REPO_ROOT / "services" / entry["service_dir"] / "docker-compose.yml"
+        assert compose.exists(), f"{sid}: missing {compose}"
+
+
+def test_effective_config_applies_services_override(tmp_path, monkeypatch):
+    _redirect_config(monkeypatch, tmp_path)
+    _write(
+        tmp_path / "install.local.yaml",
+        {"preset": "default", "services": {"radicale": {}, "nostr-relay": {}}},
+    )
+    eff = load_effective_config()
+    assert set(eff["services"].keys()) == {"radicale", "nostr-relay"}
+
+
+def test_save_local_config_persists_services(tmp_path, monkeypatch):
+    _redirect_config(monkeypatch, tmp_path)
+    from rag.install_config import save_local_config
+    save_local_config("default", services={"radicale": {}})
+    loaded = load_yaml(tmp_path / "install.local.yaml")
+    assert "radicale" in loaded["services"]
+
+
 # ─────────────────────────────── sizes ──────────────────────────────────
 
 def test_item_size_mb_by_variant():

@@ -2,16 +2,16 @@
 
 LAN-only self-hosted services that run alongside the core pergamon.
 
-**Status:** skeleton. Compose files + READMEs are in place for four
-services. The `pergamon services` CLI dispatcher, install-config
-integration, and setup-TUI wiring are **not yet implemented** — for now,
-start services by hand:
+Enable services via `pergamon setup` (TUI picker) or by hand-editing
+`config/install.local.yaml` under a `services:` key. Then:
 
 ```bash
-cd services/radicale && docker compose up -d
-cd services/calibre-web && docker compose up -d
-cd services/vaultwarden && VW_ADMIN_TOKEN="$(openssl rand -base64 48)" docker compose up -d
-cd services/nostr-relay && docker compose up -d
+pergamon services list            # show catalog + enabled state
+pergamon services up              # start all enabled services
+pergamon services up radicale     # or just one
+pergamon services status          # container health
+pergamon services logs radicale -f
+pergamon services down            # stop all
 ```
 
 ## Available services
@@ -30,6 +30,9 @@ Each has its own `docker-compose.yml` + `README.md` with setup specifics.
 - Docker Engine or Docker Desktop
 - `docker compose` v2 (already included in Docker Desktop)
 
+The `pergamon services` CLI checks for both and fails fast with a clear
+message if missing.
+
 ## Data
 
 Every service writes to `../build/services/<id>/`, which is gitignored.
@@ -38,12 +41,10 @@ calendars, passwords, Nostr history, etc.
 
 ## What's next
 
-Still to wire (tracked in `docs/ideas.md` → Foundations):
+Still open (tracked in `docs/ideas.md`):
 
-- `services/catalog.yaml` already exists — the CLI dispatcher reads this
-- `pergamon services {list,up,down,status,logs}` CLI
-- `rag/install_config.py` loads `services:` from install.local.yaml
-- Setup TUI asks which services to enable
-- Unit tests for the catalog parser
-- Optional: Caddy reverse proxy so services get friendly `.local` hostnames
-  instead of raw ports
+- Caddy reverse proxy so services get friendly `.local` hostnames
+  (`calendar.pergamon.local`) instead of raw ports
+- Additional services: Jellyfin (media), Immich (photos), Home Assistant,
+  Vaultwarden backups, Grafana dashboards
+- First real app on Nostr: the classifieds marketplace

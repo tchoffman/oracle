@@ -21,6 +21,7 @@ CATALOG_PATH = CONFIG_DIR / "catalog.yaml"
 INSTALL_PATH = CONFIG_DIR / "install.yaml"
 INSTALL_LOCAL_PATH = CONFIG_DIR / "install.local.yaml"
 PRESETS_DIR = CONFIG_DIR / "presets"
+SERVICES_CATALOG_PATH = REPO_ROOT / "services" / "catalog.yaml"
 
 
 def load_yaml(path: Path) -> dict:
@@ -45,6 +46,12 @@ def load_model_catalog() -> dict:
         role: {m["id"]: m for m in (models.get(role) or [])}
         for role in ("primary", "embedding")
     }
+
+
+def load_services_catalog() -> dict:
+    """Return services/catalog.yaml entries keyed by id."""
+    raw = load_yaml(SERVICES_CATALOG_PATH)
+    return {s["id"]: s for s in (raw.get("services") or [])}
 
 
 def _merge_enable(preset_enable: dict, overrides: dict) -> dict:
@@ -82,13 +89,24 @@ def load_effective_config() -> dict:
     models.update(install.get("models") or {})
     models.update(local.get("models") or {})
 
-    return {"preset": preset_name, "enable": enable, "models": models}
+    # Services: preset defaults, merged with override maps (None = remove).
+    services = preset.get("services") or {}
+    services = _merge_enable(services, install.get("services") or {})
+    services = _merge_enable(services, local.get("services") or {})
+
+    return {
+        "preset": preset_name,
+        "enable": enable,
+        "models": models,
+        "services": services,
+    }
 
 
 def save_local_config(
     preset_name: str,
     overrides: dict | None = None,
     models: dict | None = None,
+    services: dict | None = None,
 ) -> None:
     """Write config/install.local.yaml."""
     data: dict = {"preset": preset_name}
@@ -96,6 +114,8 @@ def save_local_config(
         data["overrides"] = overrides
     if models:
         data["models"] = models
+    if services is not None:
+        data["services"] = services
     with open(INSTALL_LOCAL_PATH, "w") as f:
         yaml.safe_dump(data, f, sort_keys=False, default_flow_style=False)
 

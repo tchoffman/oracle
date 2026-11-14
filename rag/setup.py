@@ -24,6 +24,7 @@ from rag.install_config import (
     load_catalog,
     load_effective_config,
     load_model_catalog,
+    load_services_catalog,
     load_yaml,
     save_local_config,
     PRESETS_DIR,
@@ -199,6 +200,30 @@ def _prompt_models(current: dict) -> dict:
     return chosen
 
 
+def _prompt_services(current: dict) -> dict:
+    """Ask which services to enable. Returns a dict {id: {}} for enabled ones."""
+    cat = load_services_catalog()
+    if not cat:
+        return {}
+    console.print(Rule("[bold]Services"))
+    console.print(
+        "Pick the LAN-only services to run alongside the pergamon. "
+        "Each runs as a Docker container; data lives under [dim]build/services/[/dim]."
+    )
+    picks = questionary.checkbox(
+        "Enable which services?",
+        choices=[
+            Choice(
+                title=f"{s['title']} — {s.get('description', '')}",
+                value=sid,
+                checked=(sid in current),
+            )
+            for sid, s in sorted(cat.items())
+        ],
+    ).ask() or []
+    return {sid: {} for sid in picks}
+
+
 def diff_from_preset(preset_enable: dict, chosen_enable: dict) -> dict:
     """Compute the minimal `overrides:` block that transforms preset_enable
     into chosen_enable. Removed items are mapped to None so the merge logic
@@ -258,6 +283,10 @@ def main() -> int:
     starting_models = {**preset_models, **(current.get("models") or {})}
     chosen_models = _prompt_models(starting_models)
 
+    # Services — optional block, always offered.
+    starting_services = current.get("services") or base.get("services") or {}
+    chosen_services = _prompt_services(starting_services)
+
     # Show summary and confirm.
     console.print(_summary_table(catalog, chosen_enable))
     if chosen_models:
@@ -277,9 +306,14 @@ def main() -> int:
     if profile == "__custom__":
         preset_enable = load_yaml(PRESETS_DIR / f"{base_preset_choice}.yaml").get("enable") or {}
         overrides = diff_from_preset(preset_enable, chosen_enable)
-        save_local_config(base_preset_choice, overrides=overrides, models=model_overrides)
+        save_local_config(
+            base_preset_choice,
+            overrides=overrides,
+            models=model_overrides,
+            services=chosen_services,
+        )
     else:
-        save_local_config(profile, models=model_overrides)
+        save_local_config(profile, models=model_overrides, services=chosen_services)
 
     console.print(f"[green]Saved to[/green] config/install.local.yaml")
     console.print("\nNext steps:")
