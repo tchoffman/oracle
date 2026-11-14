@@ -14,6 +14,8 @@ Usage:
   pergamon ask "question"      Ask the library (RAG over your corpus)
   pergamon serve [--port N]    Serve ZIMs via kiwix-serve (default port 8080)
   pergamon web [--port N]      Launch the web UI (default port 8090)
+  pergamon mesh mock           Mesh-radio mock mode (stdin → chunked answer)
+  pergamon mesh listen         Listen for Meshtastic DMs over USB
   pergamon status              Show what's installed / indexed / ready
   pergamon shell               Drop into a REPL with the venv activated
 
@@ -101,6 +103,21 @@ case "$cmd" in
     cd "$REPO_ROOT"
     echo "Pergamon web UI → http://localhost:$port"
     exec "$VENV_PY" -m uvicorn rag.web:app --host "$host" --port "$port"
+    ;;
+
+  mesh)
+    sub="${1:-}"
+    shift || true
+    require_venv
+    cd "$REPO_ROOT"
+    case "$sub" in
+      mock)   exec "$VENV_PY" -m modules.comms.meshtastic.mock "$@" ;;
+      listen) exec "$VENV_PY" -m modules.comms.meshtastic.listen "$@" ;;
+      *)
+        echo "Usage: pergamon mesh {mock|listen}" >&2
+        exit 2
+        ;;
+    esac
     ;;
 
   status)
