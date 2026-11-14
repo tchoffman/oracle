@@ -108,6 +108,68 @@ services, compendium).
   RAG. "What did BBC World Service say about X yesterday?"
 - **Podcast archive** — download + ingest transcripts.
 
+## Identity & community reputation
+
+### ★ Identity (foundational — build before/with classifieds)
+
+Each user has a Nostr keypair. Private key (`nsec`) is the secret account ID
+they use to sign into any pergamon distributed app. Public key (`npub`) is
+their cross-pergamon identifier.
+
+Reputation = a bundle of signals, computed per-viewer (no global score):
+
+- Who follows them (NIP-02)
+- NIP-05 verified name via a pergamon domain (`trenton@mypergamon.local`)
+- Age of key + activity history on the local relay
+- Positive endorsements (NIP-25 reactions / list memberships)
+- Peer-circle depth: "4 of your 10 closest peers follow them"
+
+Login flow: client holds the nsec and signs events. No passwords. No
+server-side auth. Standard Nostr clients already implement this.
+
+Build cost: small. Mostly a `pergamon identity` command for key generate /
+export / rotate, plus a NIP-05 verifier endpoint on the local relay.
+
+### Community reports (high-risk; design before building)
+
+**Framing:** "local witness reports," not "most wanted." Lets victims get
+on-record and warn neighbors about predatory behavior; a real need in
+low-institution contexts. But reputation-weighted accusation systems have a
+bad historical track record (false accusations, ethnic targeting, mob
+dynamics, weaponized disputes). Build carefully or not at all.
+
+Non-negotiable guardrails if built:
+
+- **Signed reports only.** No anonymous accusations — your reputation is on
+  the line too.
+- **Local-circle scope.** Reports travel your peers' relays, not globally.
+- **Weighted by reporter-rep × N independent reporters.** Drive-by low-rep
+  post → near-zero weight.
+- **Subject can reply** (reply event attached). Mediation outcomes attach
+  too — resolved / unfounded / retracted / confirmed by elder.
+- **Default 12-month expiry** unless renewed.
+- **Audit log of every report by a given author** — repeat false accusers
+  self-weight-down.
+- **Explicit opt-in stream.** Doesn't contaminate classifieds / social.
+- **Photos only with a consent framework** — subject's npub tagged; they
+  can dispute. Minors not allowed at all.
+- **LLM doesn't ground answers in reports.** `pergamon ask` returns
+  factual references; contested accusations are not facts.
+
+Risks that persist even with all guardrails:
+
+- Weaponized divorces / business-rival accusations
+- Out-group targeting (ethnic, religious, political)
+- Legal exposure (defamation applies to electronic publication)
+- Chilling effect on newcomers — pushes communities toward xenophobia
+
+**Suggested first step:** skip the structured witness-report system and
+ship a plain **"local news / local notices" section** on the classifieds
+message board. Lower system risk (it's just a thread); the social layer
+does the enforcement. This is how real towns have handled this forever
+(the bulletin board at the general store). Build the formal system only
+after watching the simple version in production.
+
 ## Open market (eBay-for-food)
 
 - **Classifieds first** (via Nostr) — "I have / I need" posts with geo.
